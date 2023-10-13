@@ -29,15 +29,16 @@ export class UsersService {
         .getOne()
     }
 
-    async checkUnknownUser(user: CreatedUsersDto): Promise<boolean> {
-      let unknownUser = await this.usersRepository
-        .createQueryBuilder("users")
-        .where("users.username= :username", {username: user.username})
-        .orWhere("users.email= :email", {email: user.email})
-        .getOne()
-      return !unknownUser;
-    }
-    async Create(user: CreatedUsersDto): Promise<User> {
+  async checkUnknownUser(user: CreatedUsersDto): Promise<boolean> {
+    let unknownUser = await this.usersRepository
+      .createQueryBuilder("users")
+      .where("users.username= :username", {username: user.username})
+      .orWhere("users.email= :email", {email: user.email})
+      .getOne()
+    if (unknownUser == null) return false;
+    return true;
+  }
+  async Create(user: CreatedUsersDto): Promise<User> {
       const newUser = this.usersRepository.create(user);
       return this.usersRepository.save(newUser);
     }
