@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Get } from '@nestjs/common';
-import { CreatedUsersDto } from '../dto/users.dto';
+import {CreatedUserDto} from '../dto/users.dto';
 import { UsersService } from '../services/users.service';
 import { HttpException, UnauthorizedException } from '@nestjs/common/exceptions';
 import { ValidationPipe } from '@nestjs/common/pipes';
@@ -23,7 +23,7 @@ export class UsersController {
 
   @UsePipes(ValidationPipe)
   @Post('/auth/sign-up')
-  async SignUp(@Body() body: CreatedUsersDto): Promise<{}> {
+  async SignUp(@Body() body: CreatedUserDto): Promise<{}> {
     if (await this.usersService.checkUnknownUser(body)) {
       throw new HttpException('User already exists', 409);
     }

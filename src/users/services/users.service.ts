@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users.entity';
-import { CreatedUsersDto } from '../dto/users.dto';
+import {CreatedUserDto} from '../dto/users.dto';
 
 @Injectable()
 export class UsersService {
@@ -29,7 +29,7 @@ export class UsersService {
         .getOne()
     }
 
-  async checkUnknownUser(user: CreatedUsersDto): Promise<boolean> {
+  async checkUnknownUser(user: CreatedUserDto): Promise<boolean> {
     let unknownUser = await this.usersRepository
       .createQueryBuilder("users")
       .where("users.username= :username", {username: user.username})
@@ -38,7 +38,7 @@ export class UsersService {
     if (unknownUser == null) return false;
     return true;
   }
-  async Create(user: CreatedUsersDto): Promise<User> {
+  async Create(user: CreatedUserDto): Promise<User> {
       const newUser = this.usersRepository.create(user);
       return this.usersRepository.save(newUser);
     }
