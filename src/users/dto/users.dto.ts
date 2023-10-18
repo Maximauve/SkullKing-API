@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, MinLength } from "class-validator"
+import {IsEmail, IsNotEmpty, IsOptional, MinLength} from "class-validator"
 import { Role } from "../role.enum";
 
 export class CreatedUserDto {
@@ -14,5 +14,6 @@ export class CreatedUserDto {
     @MinLength(6)
     password: string;
 
+    @IsOptional()
     role?: Role;
 }

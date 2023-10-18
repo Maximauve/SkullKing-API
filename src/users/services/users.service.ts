@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users.entity';
-import {CreatedUserDto} from '../dto/users.dto';
+import { CreatedUserDto } from '../dto/users.dto';
+import { HttpException } from '@nestjs/common/exceptions';
+import {UpdatedUsersDto} from "../dto/usersUpdate.dto";
 
 @Injectable()
 export class UsersService {
@@ -13,6 +15,20 @@ export class UsersService {
 
     async GetAll(): Promise<User[]> {
         return await this.usersRepository.find();
+    }
+
+    async GetMe(): Promise<User> {
+      return await this.usersRepository
+        .createQueryBuilder("users")
+        .where("users.id= :id", {id: '1'})
+        .getOne()
+    }
+
+    async FindOneId(id: string): Promise<User> {
+        return await this.usersRepository
+          .createQueryBuilder("users")
+          .where("users.id= :id", {id: id})
+          .getOne()
     }
 
     async FindOneUsername(username: string): Promise<User> {
@@ -28,8 +44,7 @@ export class UsersService {
         .where("users.email= :email", {email: email})
         .getOne()
     }
-
-  async checkUnknownUser(user: CreatedUserDto): Promise<boolean> {
+  async checkUnknownUser(user: CreatedUserDto | UpdatedUsersDto): Promise<boolean> {
     let unknownUser = await this.usersRepository
       .createQueryBuilder("users")
       .where("users.username= :username", {username: user.username})
@@ -41,5 +56,27 @@ export class UsersService {
   async Create(user: CreatedUserDto): Promise<User> {
       const newUser = this.usersRepository.create(user);
       return this.usersRepository.save(newUser);
-    }
+  }
+
+  async Delete(userId: string) {
+    let query = await this.usersRepository
+      .createQueryBuilder()
+      .delete()
+      .from(User)
+      .where("id= :id", { id: userId })
+      .execute();
+    if (query.affected == 0) throw new HttpException("User not found",  404);
+    return {};
+  }
+
+  async Update(userId: string, user: UpdatedUsersDto) {
+    let query = await this.usersRepository
+      .createQueryBuilder()
+      .update(User)
+      .set(user)
+      .where("id= :id", { id: userId })
+      .execute();
+    if (query.affected == 0) throw new HttpException("User not found",  404);
+    return {};
+  }
 }
