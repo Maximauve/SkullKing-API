@@ -24,8 +24,14 @@ export class UsersController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Get('/me')
+    GetMe(@Req() req): {} {
+        return this.usersService.FindOneId(req.user.id);
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Get('/:id')
-    GetMe(@Param() id: string): {} {
+    GetId(@Param() id: string): {} {
         return this.usersService.FindOneId(id);
     }
 

@@ -17,13 +17,6 @@ export class UsersService {
         return await this.usersRepository.find();
     }
 
-    async GetMe(): Promise<User> {
-      return await this.usersRepository
-        .createQueryBuilder("users")
-        .where("users.id= :id", {id: '1'})
-        .getOne()
-    }
-
     async FindOneId(id: string): Promise<User> {
         return await this.usersRepository
           .createQueryBuilder("users")
