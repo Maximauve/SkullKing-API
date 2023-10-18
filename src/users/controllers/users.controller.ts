@@ -1,5 +1,5 @@
-import {Body, Controller, Post, Get, Delete, Param, Req, Put} from '@nestjs/common';
-import {CreatedUsersDto} from '../dto/users.dto';
+import {Body, Controller, Delete, Get, Param, Post, Put, Req} from '@nestjs/common';
+import {CreatedUserDto} from '../dto/users.dto';
 import {UsersService} from '../services/users.service';
 import {HttpException} from '@nestjs/common/exceptions';
 import {ValidationPipe} from '@nestjs/common/pipes';
@@ -9,14 +9,13 @@ import {JwtAuthGuard} from "../../auth/guards/jwt-auth.guard";
 import {LoginDto} from '../dto/login.dto';
 import {Role} from '../role.enum';
 import {UpdatedUsersDto} from '../dto/usersUpdate.dto';
+
 const bcrypt = require('bcrypt');
 
 
 @Controller('users')
 export class UsersController {
-
-    constructor(private usersService: UsersService, private authService: AuthService) {
-    }
+    constructor(private usersService: UsersService, private authService: AuthService) {}
 
     @UseGuards(JwtAuthGuard)
     @Get()
@@ -32,7 +31,7 @@ export class UsersController {
 
     @UsePipes(ValidationPipe)
     @Post('/auth/sign-up')
-    async SignUp(@Body() body: CreatedUsersDto): Promise<{}> {
+    async SignUp(@Body() body: CreatedUserDto): Promise<{}> {
         if (await this.usersService.checkUnknownUser(body)) {
             throw new HttpException('User already exists', 409);
         }
@@ -77,12 +76,10 @@ export class UsersController {
 }
 
 async function hashPassword(plaintextPassword: string) {
-    const hash: string = await bcrypt.hash(plaintextPassword, 10);
-    return hash
+    return await bcrypt.hash(plaintextPassword, 10)
 }
 
 // compare password
 async function comparePassword(plaintextPassword: string, hash: string) {
-    const result = await bcrypt.compare(plaintextPassword, hash);
-    return result;
+    return await bcrypt.compare(plaintextPassword, hash);
 }
