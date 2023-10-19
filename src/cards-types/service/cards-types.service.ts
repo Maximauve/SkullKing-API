@@ -34,7 +34,7 @@ export class CardTypeService {
                 superior_to.map(dto => this.FindOneName(dto.name))
             );
         }
-        return this.cardTypeRepository.save(cardType);
+        return this.cardTypeRepository.save(cardType)
     }
 
     async checkName(name: string) {
