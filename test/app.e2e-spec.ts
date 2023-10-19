@@ -1,24 +1,19 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
+import * as pactum from 'pactum';
+import {UserTesting} from "./tests/user.testing";
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+  beforeAll(async () => {
+    app = await NestFactory.create(AppModule, { cors: true });
+    await app.listen(3000);
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    pactum.request.setBaseUrl('http://localhost:3000');
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
-  });
+  new UserTesting(app).routeTest()
 });
