@@ -9,6 +9,9 @@ export class Card {
   @Column({ type: 'integer', nullable: false })
   value: number;
 
+  @Column({ type: 'varchar' })
+  img_path: string;
+
   @ManyToOne(() => CardType, cardType => cardType.cards)
   type: CardType;
-}   
+}

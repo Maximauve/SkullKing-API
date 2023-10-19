@@ -6,15 +6,15 @@ export class CardType {
     @PrimaryGeneratedColumn()
     id: string;
 
-    @Column({ type: 'varchar', nullable: false })
+    @Column({ type: 'varchar', nullable: false, unique: true })
     name: string;
 
-    @Column({ type: 'boolean' })
+    @Column({ type: 'boolean', nullable: true })
     circular_winner: boolean;
 
-    @ManyToMany(() => CardType, (superiorType) => superiorType.superiorTo)
+    @ManyToMany(() => CardType, (superiorType) => superiorType.superior_to)
     @JoinTable()
-    superiorTo: CardType[];
+    superior_to: CardType[];
 
     @OneToMany(() => Card, card => card.type)
     cards: Card[];

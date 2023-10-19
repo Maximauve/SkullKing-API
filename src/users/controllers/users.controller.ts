@@ -42,6 +42,7 @@ export class UsersController {
         return this.usersService.Create(body);
     }
 
+    @UsePipes(ValidationPipe)
     @Post('/auth/login')
     async Login(@Body() body: LoginDto) {
         let user = await this.usersService.FindOneEmail(body.email);
