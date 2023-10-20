@@ -22,6 +22,12 @@ export class BaseRouteTesting {
         password: string,
     }
     commonUserId!: string;
+    cardType!: {
+        name: string,
+        superior_to: [],
+        circular_winner: boolean,
+    }
+    cardTypeId!: string;
 
     constructor(app: INestApplication, pathName: string) {
         this.pathName = pathName;
@@ -34,6 +40,9 @@ export class BaseRouteTesting {
 
     async createAllUsers(email: string) {
         await Promise.all([this.createAdmin(), this.createUser(), this.createUserWithEmail(email)])
+    }
+    async createCardsType() {
+        await Promise.all([this.createUser(), this.createCardType()])
     }
 
     private async createAdmin() {
@@ -74,6 +83,18 @@ export class BaseRouteTesting {
             }).expectStatus(201).returns('id')
     }
 
+    public async createCardType() {
+        this.cardType = {
+            name: faker.lorem.word(),
+            superior_to: [],
+            circular_winner: false,
+        }
+        this.cardTypeId = await this.customPostPrivate('cards-types')
+            .withJson(this.cardType)
+            .expectStatus(201)
+            .returns('id')
+    }
+
     protected async getAccessToken() {
         return this.customPostPrivate('users/auth/login')
           .withJson(this.user)
@@ -96,7 +117,7 @@ export class BaseRouteTesting {
           .returns('access_token') as unknown as string;
     }
 
-    private customPostPrivate(path: string) {
+    protected customPostPrivate(path: string) {
         return pactum.spec().post(`/${path}`);
     }
 
@@ -137,6 +158,13 @@ export class BaseRouteTesting {
         return pactum
           .spec()
           .delete(`/${this.pathName}/${path}`)
+          .withHeaders('Authorization', `Bearer ${this.accessToken}`);
+    }
+
+    protected customPost(path: string) {
+        return pactum
+          .spec()
+          .post(`/${this.pathName}/${path}`)
           .withHeaders('Authorization', `Bearer ${this.accessToken}`);
     }
 

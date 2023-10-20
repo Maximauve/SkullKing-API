@@ -14,7 +14,10 @@ export class CardTypeService {
     }
 
     async getAll() {
-        return await this.cardTypeRepository.find();
+        return await this.cardTypeRepository
+          .createQueryBuilder("card_type")
+          .innerJoinAndSelect("card_type.superior_to", "card_type_superior_to_card_type")
+          .getMany();
     }
 
     async FindOneName(name: string): Promise<CardType> {
