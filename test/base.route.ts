@@ -17,6 +17,11 @@ export class BaseRouteTesting {
         password: string,
     }
     userId!: string;
+    commonUser!: {
+        email: string,
+        password: string,
+    }
+    commonUserId!: string;
 
     constructor(app: INestApplication, pathName: string) {
         this.pathName = pathName;
@@ -27,8 +32,8 @@ export class BaseRouteTesting {
         throw new Error('Not implemented');
     }
 
-    async createAllUsers() {
-        await Promise.all([this.createAdmin(), this.createUser()])
+    async createAllUsers(email: string) {
+        await Promise.all([this.createAdmin(), this.createUser(), this.createUserWithEmail(email)])
     }
 
     private async createAdmin() {
@@ -57,11 +62,81 @@ export class BaseRouteTesting {
             }).expectStatus(201).returns('id')
     }
 
+    public async createUserWithEmail(email: string) {
+        this.commonUser = {
+            email: email,
+            password: faker.internet.password(10),
+        }
+        this.commonUserId = await this.customPostPrivate('users/auth/sign-up')
+            .withJson({
+                ...this.user,
+                username: faker.internet.userName(),
+            }).expectStatus(201).returns('id')
+    }
+
+    protected async getAccessToken() {
+        return this.customPostPrivate('users/auth/login')
+          .withJson(this.user)
+          .expectStatus(201)
+          .returns('access_token') as unknown as string;
+    }
+
+    protected async setAccessToken() {
+        this.accessToken = await this.getAccessToken();
+    }
+
     private customPostPrivate(path: string) {
         return pactum.spec().post(`/${path}`);
     }
 
     protected customPostWithoutAccessToken(path: string) {
         return pactum.spec().post(`/${this.pathName}/${path}`);
+    }
+
+    protected customGetWithoutAccessToken(path: string) {
+        return pactum.spec().get(`/${this.pathName}/${path}`);
+    }
+
+    protected itu(name: string, fn: () => Promise<unknown>) {
+        it(name, async () => {
+            await this.setAccessToken();
+            await fn();
+        });
+    }
+
+    protected customGet(path: string) {
+        return pactum
+          .spec()
+          .get(`/${this.pathName}/${path}`)
+          .withHeaders('Authorization', `Bearer ${this.accessToken}`);
+    }
+
+    protected customPut(path: string) {
+        return pactum
+          .spec()
+          .put(`/${this.pathName}/${path}`)
+          .withHeaders('Authorization', `Bearer ${this.accessToken}`);
+    }
+
+    protected customDelete(path: string) {
+        return pactum
+          .spec()
+          .delete(`/${this.pathName}/${path}`)
+          .withHeaders('Authorization', `Bearer ${this.accessToken}`);
+    }
+
+    protected find() {
+        return pactum
+          .spec()
+          .get(`/${this.pathName}`)
+          .withHeaders('Authorization', `Bearer ${this.accessToken}`);
+    }
+
+    protected findById(id: string) {
+        return pactum
+          .spec()
+          .get(`/${this.pathName}/{id}`)
+          .withPathParams('id', id)
+          .withHeaders('Authorization', `Bearer ${this.accessToken}`);
     }
 }
