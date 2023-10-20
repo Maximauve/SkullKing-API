@@ -17,7 +17,6 @@ export class RedisController {
     return "Utilisateur créé avec succès";
   }
 
-
   @Get("/:name")
   async Get(@Param('name') name: string): Promise<{}> {
     return this.redisService.get(name);

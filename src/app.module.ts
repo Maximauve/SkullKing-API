@@ -9,6 +9,8 @@ import {CardTypeModule} from "./cards-types/cards-types.module";
 import {CardType} from "./cards-types/cards-types.entity";
 import {RedisService} from "./redis/service/redis.service";
 import {RedisModule} from "./redis/redis.module";
+import {PirateGlossaryModule} from "./pirate-glossary/pirate-glossary.module";
+import {PirateGlossary} from "./pirate-glossary/pirate-glossary.entity";
 
 @Module({
   imports: [
@@ -22,7 +24,7 @@ import {RedisModule} from "./redis/redis.module";
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [User, Card, CardType],
+        entities: [User, Card, CardType, PirateGlossary],
         synchronize: true,
       }),
       inject: [ConfigService],
@@ -30,7 +32,8 @@ import {RedisModule} from "./redis/redis.module";
     UsersModule,
     CardsModule,
     CardTypeModule,
-    RedisModule
+    RedisModule,
+    PirateGlossaryModule,
   ],
   controllers: [],
   providers: [],
