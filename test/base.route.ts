@@ -69,7 +69,7 @@ export class BaseRouteTesting {
         }
         this.commonUserId = await this.customPostPrivate('users/auth/sign-up')
             .withJson({
-                ...this.user,
+                ...this.commonUser,
                 username: faker.internet.userName(),
             }).expectStatus(201).returns('id')
     }
@@ -85,6 +85,17 @@ export class BaseRouteTesting {
         this.accessToken = await this.getAccessToken();
     }
 
+    protected async setAdminAccessToken() {
+        this.accessToken = await this.getAdminAccessToken();
+    }
+
+    protected async getAdminAccessToken() {
+        return this.customPostPrivate('users/auth/login')
+          .withJson(this.admin)
+          .expectStatus(201)
+          .returns('access_token') as unknown as string;
+    }
+
     private customPostPrivate(path: string) {
         return pactum.spec().post(`/${path}`);
     }
@@ -95,6 +106,10 @@ export class BaseRouteTesting {
 
     protected customGetWithoutAccessToken(path: string) {
         return pactum.spec().get(`/${this.pathName}/${path}`);
+    }
+
+    protected customPutWithoutAccessToken(path: string) {
+        return pactum.spec().put(`/${this.pathName}/${path}`);
     }
 
     protected itu(name: string, fn: () => Promise<unknown>) {

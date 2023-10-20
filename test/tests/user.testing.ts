@@ -3,7 +3,7 @@ import {faker} from '@faker-js/faker'
 import {BaseRouteTesting} from "../base.route";
 export class UserTesting extends BaseRouteTesting {
     constructor(app: INestApplication) {
-        super(app, 'user');
+        super(app, 'users');
     }
 
     routeTest() {
@@ -12,7 +12,7 @@ export class UserTesting extends BaseRouteTesting {
             beforeAll(async () => {
                 await this.createAllUsers(commonEmail)
             })
-            describe('user', () => {
+            describe('users', () => {
                 describe('post /users/auth/sign-up', () => {
                     it('should return 201 (create user with explicit role)', async () => {
                         await this.customPostWithoutAccessToken('auth/sign-up')
@@ -98,7 +98,7 @@ export class UserTesting extends BaseRouteTesting {
                               email: commonEmail,
                               password: this.commonUser.password,
                           })
-                          .expectStatus(200)
+                          .expectStatus(201)
                           .expectJsonSchema({
                               type: 'object',
                               properties: {
@@ -194,26 +194,38 @@ export class UserTesting extends BaseRouteTesting {
                           });
                     });
                 });
-                describe('put /users/{id}', () => {
+                describe('put /users/{id}',  () => {
+                    this.itu('should return 403', async () => {
+                        return this.customPut('id')
+                          .withJson({
+                            email: faker.internet.email(),
+                            username: faker.internet.userName(),
+                            password: 'azerty123!',
+                          })
+                          .expectStatus(403);
+                    });
                     this.itu('should return 400', async () => {
+                        await this.setAdminAccessToken();
                         return this.customPut('id')
                           .withJson({
                               email: faker.internet.email(),
                               username: faker.internet.userName(),
-                              password: 'Qwertyuiop123!',
+                              password: 'azerty123!',
                           })
                           .expectStatus(400);
                     });
                     this.itu('should return 404', async () => {
+                        await this.setAdminAccessToken();
                         return this.customPut('187e020c-4c74-4a44-996c-6e8100523413')
                           .withJson({
                               email: faker.internet.email(),
                               username: faker.internet.userName(),
-                              password: 'Qwertyuiop123!',
+                              password: 'azerty123!',
                           })
                           .expectStatus(404);
                     });
                     this.itu('should return 200', async () => {
+                        await this.setAdminAccessToken();
                         let id = await this.customPostWithoutAccessToken('auth/sign-up')
                           .withJson({
                               email: faker.internet.email(),
@@ -244,13 +256,19 @@ export class UserTesting extends BaseRouteTesting {
                     });
                 });
                 describe('delete /users/{id}', () => {
+                    this.itu('should return 403', async () => {
+                        return this.customDelete('187e020c-4c74-4a44-996c-6e8100523413').expectStatus(403);
+                    });
                     this.itu('should return 400', async () => {
+                        await this.setAdminAccessToken()
                         return this.customDelete('id').expectStatus(400);
                     });
                     this.itu('should return 404', async () => {
+                        await this.setAdminAccessToken()
                         return this.customDelete('187e020c-4c74-4a44-996c-6e8100523413').expectStatus(404);
                     });
                     this.itu('should return 200', async () => {
+                        await this.setAdminAccessToken()
                         let id = await this.customPostWithoutAccessToken('auth/sign-up')
                           .withJson({
                               email: faker.internet.email(),

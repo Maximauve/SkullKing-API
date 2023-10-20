@@ -9,11 +9,13 @@ import {JwtAuthGuard} from "../../auth/guards/jwt-auth.guard";
 import {LoginDto} from '../dto/login.dto';
 import {Role} from '../role.enum';
 import {UpdatedUsersDto} from '../dto/usersUpdate.dto';
+import {uuidRegex} from "../variables.const";
 const bcrypt = require('bcrypt');
 
 
 @Controller('users')
 export class UsersController {
+
     constructor(private usersService: UsersService, private authService: AuthService) {}
 
     @UseGuards(JwtAuthGuard)
@@ -30,8 +32,13 @@ export class UsersController {
 
     @UseGuards(JwtAuthGuard)
     @Get('/:id')
-    GetId(@Param('id') id: string): {} {
-        return this.usersService.FindOneId(id);
+    async GetId(@Param('id') id: string): Promise<{}> {
+        if (!uuidRegex.test(id)){
+            throw new HttpException('Invalid id', 400);
+        }
+        let user = await this.usersService.FindOneId(id);
+        if (!user) throw new HttpException('User not found', 404);
+        return user;
     }
 
     @UsePipes(ValidationPipe)
@@ -57,6 +64,7 @@ export class UsersController {
         const me = await this.usersService.FindOneId(req.user.id);
         if (!me) throw new UnauthorizedException();
         if (Role.Admin != me.role) throw new HttpException('Forbidden', 403);
+        if (!uuidRegex.test(id)) throw new HttpException('Invalid id', 400);
         return this.usersService.Delete(id);
     }
 
@@ -67,10 +75,13 @@ export class UsersController {
         const me = await this.usersService.FindOneId(req.user.id);
         if (!me) throw new UnauthorizedException();
         if (Role.Admin != me.role && me.id != id) throw new HttpException('Forbidden', 403);
+        if (!uuidRegex.test(id)) throw new HttpException('Invalid id', 400);
         if (await this.usersService.checkUnknownUser(body)) throw new HttpException('User already exists', 409);
         if (body.password) body.password = await hashPassword(body.password);
         await this.usersService.Update(id, body);
-        return await this.usersService.FindOneId(id);
+        let user = await this.usersService.FindOneId(id);
+        if (!user) throw new HttpException('User not found', 404);
+        return user;
     }
 }
 
