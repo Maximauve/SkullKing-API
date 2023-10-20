@@ -6,10 +6,10 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
   const microserviceOptions: MicroserviceOptions = {
-  // @ts-ignore
     transport: Transport.REDIS,
     options: {
-      url: 'redis://localhost:6379',
+      host: 'localhost',
+      port: 6379,
     },
   };
 

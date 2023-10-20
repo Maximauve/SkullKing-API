@@ -10,13 +10,14 @@ import {LoginDto} from '../dto/login.dto';
 import {Role} from '../role.enum';
 import {UpdatedUsersDto} from '../dto/usersUpdate.dto';
 import {uuidRegex} from "../variables.const";
+import {RedisService} from "../../redis/service/redis.service";
 const bcrypt = require('bcrypt');
 
 
 @Controller('users')
 export class UsersController {
 
-    constructor(private usersService: UsersService, private authService: AuthService) {}
+    constructor(private usersService: UsersService, private authService: AuthService, private readonly redisService: RedisService) {}
 
     @UseGuards(JwtAuthGuard)
     @Get("/")

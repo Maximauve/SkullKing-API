@@ -7,6 +7,8 @@ import {CardsModule} from "./cards/cards.module";
 import {Card} from "./cards/cards.entity";
 import {CardTypeModule} from "./cards-types/cards-types.module";
 import {CardType} from "./cards-types/cards-types.entity";
+import {RedisService} from "./redis/service/redis.service";
+import {RedisModule} from "./redis/redis.module";
 
 @Module({
   imports: [
@@ -27,7 +29,8 @@ import {CardType} from "./cards-types/cards-types.entity";
     }),
     UsersModule,
     CardsModule,
-    CardTypeModule
+    CardTypeModule,
+    RedisModule
   ],
   controllers: [],
   providers: [],
