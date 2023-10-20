@@ -19,5 +19,5 @@ describe('AppController (e2e)', () => {
 
   new UserTesting(app).routeTest();
   new CardTypeTesting(app).routeTest();
-  // new CardTesting(app).routeTest();
+  new CardTesting(app).routeTest();
 });

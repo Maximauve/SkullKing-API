@@ -41,9 +41,6 @@ export class BaseRouteTesting {
     async createAllUsers(email: string) {
         await Promise.all([this.createAdmin(), this.createUser(), this.createUserWithEmail(email)])
     }
-    async createCardsType() {
-        await Promise.all([this.createUser(), this.createCardType()])
-    }
 
     private async createAdmin() {
         this.admin = {
@@ -89,7 +86,7 @@ export class BaseRouteTesting {
             superior_to: [],
             circular_winner: false,
         }
-        this.cardTypeId = await this.customPostPrivate('cards-types')
+        this.cardTypeId = await this.customPostCard('cards-types')
             .withJson(this.cardType)
             .expectStatus(201)
             .returns('id')
@@ -165,6 +162,13 @@ export class BaseRouteTesting {
         return pactum
           .spec()
           .post(`/${this.pathName}/${path}`)
+          .withHeaders('Authorization', `Bearer ${this.accessToken}`);
+    }
+
+    protected customPostCard(path: string) {
+        return pactum
+          .spec()
+          .post(`/${path}`)
           .withHeaders('Authorization', `Bearer ${this.accessToken}`);
     }
 

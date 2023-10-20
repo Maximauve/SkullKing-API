@@ -1,5 +1,6 @@
 import {BaseRouteTesting} from "../base.route";
 import {INestApplication} from "@nestjs/common";
+import {faker} from "@faker-js/faker";
 
 export class CardTesting extends BaseRouteTesting {
   constructor(app: INestApplication) {
@@ -8,34 +9,63 @@ export class CardTesting extends BaseRouteTesting {
 
   routeTest() {
     describe('route', () => {
+      beforeAll(async () => {
+        await this.createUser();
+        await this.setAccessToken();
+        await this.createCardType();
+      })
       describe('cards', () => {
         describe('post /cards', () => {
           it('should return 401', (): any => {
             return this.customPostWithoutAccessToken('')
               .withJson({
-                name: 'Test',
-                img_path: 'Test',
-                value: Math.floor(Math.random() * (14 - 1)) + 1
+                img_path: faker.image.url(),
+                value: Math.floor(Math.random() * (14 - 1)) + 1,
+                type: this.cardType
               })
               .expectStatus(401);
           });
           it('should return 201', async () => {
             await this.setAccessToken();
-            return this.customPostPrivate('')
+            return this.customPost('')
               .withJson({
-                name: 'Test',
-                img_path: 'Test',
-                value: Math.floor(Math.random() * (14 - 1)) + 1
+                img_path: faker.image.url(),
+                value: Math.floor(Math.random() * (14 - 1)) + 1,
+                type: this.cardType
               })
               .expectStatus(201)
               .expectJsonSchema({
                 type: 'object',
                 properties: {
                   id: {
+                    type: 'number',
+                  },
+                  img_path: {
                     type: 'string',
                   },
-                  name: {
-                    type: 'string',
+                  value: {
+                    type: 'number',
+                  },
+                  type: {
+                    type: 'object',
+                    properties: {
+                      id: {
+                        type: 'number',
+                      },
+                      name: {
+                        type: 'string',
+                      },
+                      circular_winner: {
+                        anyOf: [
+                          {
+                            type: 'boolean',
+                          },
+                          {
+                            type: 'null',
+                          },
+                        ],
+                      }
+                    }
                   }
                 },
               });
@@ -54,29 +84,45 @@ export class CardTesting extends BaseRouteTesting {
                   type: 'object',
                   properties: {
                     id: {
-                      type: 'string',
-                    },
-                    name: {
-                      type: 'string',
-                    },
-                    image: {
-                      type: 'string',
-                    },
-                    color: {
-                      type: 'string',
-                    },
-                    value: {
                       type: 'number',
                     },
+                    value: {
+                      anyOf: [
+                        {
+                          type: 'number',
+                        },
+                        {
+                          type: 'string',
+                        }
+                      ]
+                    },
+                    img_path: {
+                      type: 'string',
+                    },
                     type: {
-                      type: 'string',
-                    },
-                    createdAt: {
-                      type: 'string',
-                    },
-                    updatedAt: {
-                      type: 'string',
-                    },
+                      type: 'object',
+                      properties: {
+                        id: {
+                          type: 'number',
+                        },
+                        name: {
+                          type: 'string',
+                        },
+                        superior_to: {
+                          type: 'array',
+                        },
+                        circular_winner: {
+                          anyOf: [
+                            {
+                              type: 'boolean',
+                            },
+                            {
+                              type: 'null',
+                            },
+                          ],
+                        }
+                      }
+                    }
                   },
                 },
               });
