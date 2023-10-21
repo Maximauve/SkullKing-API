@@ -6,6 +6,7 @@ import * as pactum from 'pactum';
 import {UserTesting} from "./tests/user.testing";
 import {CardTesting} from "./tests/card.testing";
 import {CardTypeTesting} from "./tests/card-type.testing";
+import {PirateGlosseryTesting} from "./tests/pirate-glossery.testing";
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -20,4 +21,5 @@ describe('AppController (e2e)', () => {
   new UserTesting(app).routeTest();
   new CardTypeTesting(app).routeTest();
   new CardTesting(app).routeTest();
+  new PirateGlosseryTesting(app).routeTest();
 });
