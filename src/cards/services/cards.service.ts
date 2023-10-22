@@ -10,6 +10,7 @@ import {CardTypeService} from "../../cards-types/service/cards-types.service";
 import {UseGuards} from "@nestjs/common/decorators";
 import {JwtAuthGuard} from "../../auth/guards/jwt-auth.guard";
 import {ValidationPipe} from "@nestjs/common/pipes";
+import {User} from "../../users/users.entity";
 
 @Injectable()
 export class CardsService {
@@ -31,5 +32,16 @@ export class CardsService {
         if (!await this.cardsTypesRepository.FindOneName(type.name)) throw new HttpException('Unknown Card Type', 404);
         card.type = await this.cardsTypesRepository.FindOneName(type.name);
         return this.cardsRepository.save(card);
+    }
+
+    async delete(id: string) {
+        let query = await this.cardsRepository
+          .createQueryBuilder()
+          .delete()
+          .from(Card)
+          .where("id= :id", { id: id })
+          .execute();
+        if (query.affected == 0) throw new HttpException("Card not found",  404);
+        return {};
     }
 }

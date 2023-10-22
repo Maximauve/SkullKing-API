@@ -17,9 +17,15 @@ describe('AppController (e2e)', () => {
 
     pactum.request.setBaseUrl('http://localhost:3000');
   });
+  const tab: any =  {
+    userIds: [],
+    cardTypeIds: [],
+    cardIds: [],
+    pirateGlosseryIds: [],
+  };
 
-  new UserTesting(app).routeTest();
-  new CardTypeTesting(app).routeTest();
-  new CardTesting(app).routeTest();
-  new PirateGlosseryTesting(app).routeTest();
+  new UserTesting(app, tab).routeTest();
+  new CardTesting(app, tab).routeTest();
+  new CardTypeTesting(app, tab).routeTest();
+  new PirateGlosseryTesting(app, tab).routeTest();
 });

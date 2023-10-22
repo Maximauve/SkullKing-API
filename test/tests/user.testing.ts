@@ -2,20 +2,20 @@ import { INestApplication } from '@nestjs/common';
 import {faker} from '@faker-js/faker'
 import {BaseRouteTesting} from "../base.route";
 export class UserTesting extends BaseRouteTesting {
-    constructor(app: INestApplication) {
-        super(app, 'users');
+    constructor(app: INestApplication, allIds: any) {
+        super(app, 'users', allIds);
     }
 
     routeTest() {
         describe('route', () => {
             const commonEmail = faker.internet.email()
             beforeAll(async () => {
-                await this.createAllUsers(commonEmail)
+                await this.createAllUsers(commonEmail, this.allIds)
             })
             describe('users', () => {
                 describe('post /users/auth/sign-up', () => {
                     it('should return 201 (create user with explicit role)', async () => {
-                        await this.customPostWithoutAccessToken('auth/sign-up')
+                        let id = await this.customPostWithoutAccessToken('auth/sign-up')
                             .withJson({
                                 email: faker.internet.email(),
                                 username: faker.internet.userName(),
@@ -39,10 +39,11 @@ export class UserTesting extends BaseRouteTesting {
                                         type: 'string'
                                     }
                                 },
-                            })
+                            }).returns('id')
+                        this.allIds.userIds = [...this.allIds.userIds, id]
                     });
                     it('should return 201 (create user with implicit role)', async () => {
-                        await this.customPostWithoutAccessToken('auth/sign-up')
+                      let id = await this.customPostWithoutAccessToken('auth/sign-up')
                           .withJson({
                               email: faker.internet.email(),
                               username: faker.internet.userName(),
@@ -65,7 +66,8 @@ export class UserTesting extends BaseRouteTesting {
                                       type: 'string'
                                   }
                               },
-                          })
+                          }).returns('id')
+                      this.allIds.userIds = [...this.allIds.userIds, id]
                     });
                     it('should return 409 (user already exists)', async () => {
                         await this.customPostWithoutAccessToken('auth/sign-up')
@@ -232,6 +234,7 @@ export class UserTesting extends BaseRouteTesting {
                               username: faker.internet.userName(),
                               password: 'Qwertyuiop123!'
                           }).returns('id')
+                        this.allIds.userIds = [...this.allIds.userIds, id]
                         return this.customPut(id)
                           .withJson({
                               email: faker.internet.email(),
@@ -278,6 +281,9 @@ export class UserTesting extends BaseRouteTesting {
                         return this.customDelete(id).expectStatus(200);
                     });
                 });
+            });
+            afterAll(async () => {
+                await this.deleteAll(this.allIds);
             });
         });
     }

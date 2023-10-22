@@ -38,4 +38,10 @@ export class PirateGlossaryController {
     if (await this.pirateGlossaryService.checkWord(pirateGlossary.word)) throw new HttpException('Word already exists', 409);
     return this.pirateGlossaryService.Create(pirateGlossary as PirateGlossaryDto);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete("/:id")
+  async delete(@Param('id') id: string) {
+    return await this.pirateGlossaryService.delete(id);
+  }
 }

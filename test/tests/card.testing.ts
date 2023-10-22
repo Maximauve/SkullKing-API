@@ -3,16 +3,16 @@ import {INestApplication} from "@nestjs/common";
 import {faker} from "@faker-js/faker";
 
 export class CardTesting extends BaseRouteTesting {
-  constructor(app: INestApplication) {
-    super(app, 'cards');
+  constructor(app: INestApplication, allIds: {}) {
+    super(app, 'cards', allIds);
   }
 
   routeTest() {
     describe('route', () => {
       beforeAll(async () => {
-        await this.createUser();
+        await this.createUser(this.allIds);
         await this.setAccessToken();
-        await this.createCardType();
+        this.allIds = await this.createCardType(this.allIds);
       })
       describe('cards', () => {
         describe('post /cards', () => {
@@ -27,7 +27,7 @@ export class CardTesting extends BaseRouteTesting {
           });
           it('should return 201', async () => {
             await this.setAccessToken();
-            return this.customPost('')
+            let id = await this.customPost('')
               .withJson({
                 img_path: faker.image.url(),
                 value: Math.floor(Math.random() * (14 - 1)) + 1,
@@ -68,7 +68,8 @@ export class CardTesting extends BaseRouteTesting {
                     }
                   }
                 },
-              });
+              }).returns('id');
+            this.allIds.cardIds = [...this.allIds.cardIds, id];
           });
         });
         describe('get /cards', () => {
@@ -128,6 +129,9 @@ export class CardTesting extends BaseRouteTesting {
               });
           });
         });
+      });
+      afterAll(async () => {
+        await this.deleteAll(this.allIds);
       });
     });
   }

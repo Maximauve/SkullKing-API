@@ -5,6 +5,7 @@ import {PirateGlossary} from "../pirate-glossary.entity";
 import {PirateGlossaryDto} from "../dto/pirate-glossary.dto";
 import {PirateGlossaryController} from "../controller/pirate-glossary.controller";
 import {HttpException} from "@nestjs/common/exceptions";
+import {Card} from "../../cards/cards.entity";
 
 @Injectable()
 export class PirateGlossaryService {
@@ -34,6 +35,17 @@ export class PirateGlossaryService {
   async checkWord(word: string): Promise<boolean> {
     const pirateGlossary = await this.FindOneWord(word);
     return !!pirateGlossary;
+  }
+
+  async delete(id: string) {
+    let query = await this.pirateGlossaryRepository
+      .createQueryBuilder()
+      .delete()
+      .from(PirateGlossary)
+      .where("id= :id", { id: id })
+      .execute();
+    if (query.affected == 0) throw new HttpException("Word not found",  404);
+    return {};
   }
 }
 

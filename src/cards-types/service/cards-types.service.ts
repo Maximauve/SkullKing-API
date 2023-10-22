@@ -4,6 +4,7 @@ import {Repository} from 'typeorm';
 import {CardType} from "../cards-types.entity";
 import {CreatedCardTypeDto} from "../dto/cards-types.dto";
 import {HttpException} from "@nestjs/common/exceptions";
+import {Card} from "../../cards/cards.entity";
 
 @Injectable()
 export class CardTypeService {
@@ -45,5 +46,16 @@ export class CardTypeService {
         const cardType = await this.FindOneName(name);
         if (cardType) return true;
         return false;
+    }
+
+    async delete(id: string) {
+        let query = await this.cardTypeRepository
+          .createQueryBuilder()
+          .delete()
+          .from(CardType)
+          .where("id= :id", { id: id })
+          .execute();
+        if (query.affected == 0) throw new HttpException("Card Type not found",  404);
+        return {};
     }
 }
