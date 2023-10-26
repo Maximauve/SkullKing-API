@@ -11,6 +11,7 @@ import {RedisService} from "./redis/service/redis.service";
 import {RedisModule} from "./redis/redis.module";
 import {PirateGlossaryModule} from "./pirate-glossary/pirate-glossary.module";
 import {PirateGlossary} from "./pirate-glossary/pirate-glossary.entity";
+import { ChatGateway } from './chat/chat.gateway';
 
 @Module({
   imports: [
@@ -36,6 +37,6 @@ import {PirateGlossary} from "./pirate-glossary/pirate-glossary.entity";
     PirateGlossaryModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [ChatGateway],
 })
 export class AppModule {}

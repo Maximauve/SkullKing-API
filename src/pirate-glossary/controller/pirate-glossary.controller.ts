@@ -41,7 +41,7 @@ export class PirateGlossaryController {
 
   @UseGuards(JwtAuthGuard)
   @Delete("/:id")
-  async delete(@Param('id') id: string) {
+  async Delete(@Param('id') id: string) {
     return await this.pirateGlossaryService.delete(id);
   }
 }
