@@ -25,10 +25,12 @@ export class RoomService {
       room.slug = await this.pirateGlossaryService.GetThreeWord();
       roomKey = `room:${room.slug}`;
     }
-    await this.redisService.hset(roomKey, 'maxPlayers', room.maxPlayers.toString());
-    await this.redisService.hset(roomKey, 'currentPlayers', room.currentPlayers.toString());
-    await this.redisService.hset(roomKey, 'password', room.password);
-    await this.redisService.hset(roomKey, 'users', JSON.stringify(room.users));
+    await this.redisService.hset(roomKey, [
+      'maxPlayers', room.maxPlayers.toString(),
+      'currentPlayers', room.currentPlayers.toString(),
+      'password', room.password ?? '',
+      'users', JSON.stringify(room.users)
+    ]);
     this.rooms = [...this.rooms, room];
     return room;
   }
