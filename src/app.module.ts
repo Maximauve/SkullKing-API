@@ -12,6 +12,7 @@ import {RedisModule} from "./redis/redis.module";
 import {PirateGlossaryModule} from "./pirate-glossary/pirate-glossary.module";
 import {PirateGlossary} from "./pirate-glossary/pirate-glossary.entity";
 import { ChatGateway } from './chat/chat.gateway';
+import { RoomModule } from './room/room.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ChatGateway } from './chat/chat.gateway';
     CardTypeModule,
     RedisModule,
     PirateGlossaryModule,
+    RoomModule,
   ],
   controllers: [],
   providers: [ChatGateway],

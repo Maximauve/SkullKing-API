@@ -19,4 +19,12 @@ export class RedisService {
   async get(key: string): Promise<string | null> {
     return this.redisClient.get(key);
   }
+
+  async hset(key: string, field: string, value: string): Promise<void> {
+    await this.redisClient.hset(key, field, value);
+  }
+
+  async exists(key: string): Promise<number> {
+    return this.redisClient.exists(key);
+  }
 }
