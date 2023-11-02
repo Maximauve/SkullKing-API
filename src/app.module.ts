@@ -13,6 +13,7 @@ import {PirateGlossaryModule} from "./pirate-glossary/pirate-glossary.module";
 import {PirateGlossary} from "./pirate-glossary/pirate-glossary.entity";
 import { ChatGateway } from './chat/chat.gateway';
 import { RoomModule } from './room/room.module';
+import { RoomWebsocketGateway } from './room/room.websocket.gateway';
 
 @Module({
   imports: [
@@ -39,6 +40,6 @@ import { RoomModule } from './room/room.module';
     RoomModule,
   ],
   controllers: [],
-  providers: [ChatGateway],
+  providers: [ChatGateway, RoomWebsocketGateway],
 })
 export class AppModule {}
