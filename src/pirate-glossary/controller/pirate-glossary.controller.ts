@@ -29,12 +29,13 @@ export class PirateGlossaryController {
     if (Array.isArray(pirateGlossary.word)) {
       let allPirates: PirateGlossary[] = [];
       for (const w of pirateGlossary.word) {
-        if (await this.pirateGlossaryService.checkWord(w)) continue;
-        allPirates.push(await this.pirateGlossaryService.Create({word: w} as PirateGlossaryDto));
+        if (await this.pirateGlossaryService.checkWord(w.toLowerCase())) continue;
+        allPirates.push(await this.pirateGlossaryService.Create({word: w.toLowerCase()} as PirateGlossaryDto));
       }
       if (allPirates.length <= 0) throw new HttpException('Words already exists', 409);
       return allPirates;
     }
+    pirateGlossary.word = pirateGlossary.word.toLowerCase();
     if (await this.pirateGlossaryService.checkWord(pirateGlossary.word)) throw new HttpException('Word already exists', 409);
     return this.pirateGlossaryService.Create(pirateGlossary as PirateGlossaryDto);
   }

@@ -16,7 +16,7 @@ export class PirateGlossaryService {
 
   async GetThreeWord(): Promise<string> {
     const allWords = await this.pirateGlossaryRepository.find();
-    if (allWords.length < 3) throw new HttpException('Not enough words in the database', 404);
+    if (allWords.length < 3) throw new HttpException('Not enough words in the database', 501);
     return pickRandomElements(allWords);
   }
 
