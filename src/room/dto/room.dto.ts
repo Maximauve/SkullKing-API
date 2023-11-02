@@ -10,3 +10,7 @@ export class CreatedRoomDto {
   @IsOptional()
   password?: string;
 }
+
+export class RoomDto {
+  slug : string;
+}
