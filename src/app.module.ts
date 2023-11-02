@@ -3,6 +3,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/users.entity';
 import { UsersModule } from './users/users.module';
+import {CardsModule} from "./cards/cards.module";
+import {Card} from "./cards/cards.entity";
+import {CardTypeModule} from "./cards-types/cards-types.module";
+import {CardType} from "./cards-types/cards-types.entity";
+import {RedisService} from "./redis/service/redis.service";
+import {RedisModule} from "./redis/redis.module";
 
 @Module({
   imports: [
@@ -16,12 +22,15 @@ import { UsersModule } from './users/users.module';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [User],
+        entities: [User, Card, CardType],
         synchronize: true,
       }),
       inject: [ConfigService],
     }),
-    UsersModule
+    UsersModule,
+    CardsModule,
+    CardTypeModule,
+    RedisModule
   ],
   controllers: [],
   providers: [],
