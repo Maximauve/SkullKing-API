@@ -44,6 +44,7 @@ export class RoomService {
     if (await this.redisService.exists(roomKey) == 0) {
       throw new HttpException("La room n'existe pas",  404);
     }
+    console.log(`La route a été supprimé : ${slug}`)
     await this.redisService.del(roomKey);
     return {
       message: `La room ${slug} à été supprimé`
