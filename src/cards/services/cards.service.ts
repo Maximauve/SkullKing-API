@@ -29,7 +29,7 @@ export class CardsService {
         const card = new Card();
         card.value = value;
         card.img_path = img_path;
-        if (!await this.cardsTypesRepository.FindOneName(type.name)) throw new HttpException('Unknown Card Type', 404);
+        if (!await this.cardsTypesRepository.FindOneName(type.name)) throw new HttpException('Le Card Type n\'a pas été trouvé', 404);
         card.type = await this.cardsTypesRepository.FindOneName(type.name);
         return this.cardsRepository.save(card);
     }
@@ -41,7 +41,7 @@ export class CardsService {
           .from(Card)
           .where("id= :id", { id: id })
           .execute();
-        if (query.affected == 0) throw new HttpException("Card not found",  404);
+        if (query.affected == 0) throw new HttpException("La carte n'a pas été trouvé",  404);
         return {};
     }
 }

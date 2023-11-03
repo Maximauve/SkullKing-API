@@ -47,7 +47,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
     console.log('Client', client);
     console.log(`${client.id} is joining ${slug}`);
     if (!await this.redisService.exists(`room:${slug}`)) {
-      throw new HttpException("Room not found",  404);
+      throw new HttpException("La room n'a pas été trouvé",  404);
     }
     await client.join(slug);
     await this.roomService.addUserToRoom(slug, client.data.user);
