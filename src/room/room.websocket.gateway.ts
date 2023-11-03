@@ -9,26 +9,31 @@ import {
 import {Socket} from 'socket.io';
 import {RedisService} from "../redis/service/redis.service";
 import {HttpException} from "@nestjs/common/exceptions";
+import {Users} from "./room.model";
+import {RoomService} from "./service/room.service";
 
-@WebSocketGateway()
+@WebSocketGateway(8001, { cors : '*'})
 export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
-  constructor(private readonly redisService: RedisService) {}
+  constructor(private readonly redisService: RedisService,
+              private readonly roomService: RoomService) {}
 
   @WebSocketServer() server;
 
   @SubscribeMessage('message')
-  handleMessage(client: any, payload: any): string {
-    return 'Hello world!';
+  async handleMessage(@MessageBody() message: string): Promise<void> {
+    console.log(message);
+    await this.server.emit('message', message);
   }
 
-  handleConnection(socket: Socket): void {
+  async handleConnection(socket: Socket): Promise<void> {
     const socketId = socket.id;
     console.log(`New connecting... socket id:`, socketId);
   }
 
-  handleDisconnect(socket: Socket): void {
+  async handleDisconnect(socket: Socket): Promise<void> {
     const socketId = socket.id;
+    await this.roomService.removeUserFromAllRooms(socketId)
     console.log(`Disconnecting... socket id:`, socketId);
   }
 
@@ -37,16 +42,15 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
   }
 
   @SubscribeMessage('joinRoom')
-  async handleParticipants(@ConnectedSocket() client: Socket, @MessageBody() slug: string): Promise<string[]> {
+  async handleParticipants(@ConnectedSocket() client: Socket, @MessageBody() payload: { slug: string, user: Users }): Promise<void> {
     console.log('Client', client);
-    if (await this.redisService.exists(`room:${slug}`) == 0) {
+    console.log(`${payload.user.socketId} is joining ${payload.slug}`)
+    if (await this.redisService.exists(`room:${payload.slug}`) == 0) {
       throw new HttpException("Room not found",  404);
     }
-    let users = await this.redisService.hget(`room:${slug}`, 'users');
-    if (!users) users = '[]';
-    let usersTab: string[];
-    usersTab = [...JSON.parse(users), client.id];
-    await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(usersTab)]);
-    return usersTab;
+    if (payload.user.socketId) {
+      await this.server.in(payload.user.socketId).socketsJoin(payload.slug)
+      await this.roomService.addUserToRoom(payload.slug, payload.user)
+    }
   }
 }

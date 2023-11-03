@@ -1,4 +1,5 @@
 import {IsInt, IsNotEmpty, IsOptional, Max, Min} from "class-validator";
+import {Users} from "../room.model";
 
 export class CreatedRoomDto {
   @IsNotEmpty()
@@ -9,6 +10,9 @@ export class CreatedRoomDto {
 
   @IsOptional()
   password?: string;
+
+  @IsNotEmpty()
+  host: Users;
 }
 
 export class RoomDto {

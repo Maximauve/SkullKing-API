@@ -13,7 +13,7 @@ export class RoomController {
   @UsePipes(ValidationPipe)
   @Post('')
   async createRoom(@Body() roomCreated: CreatedRoomDto): Promise<{}> {
-    return await this.roomService.createRoom(roomCreated.maxPlayers, roomCreated?.password ?? null);
+    return await this.roomService.createRoom(roomCreated.maxPlayers, roomCreated.host, roomCreated?.password ?? null);
   }
 
   @UseGuards(JwtAuthGuard)

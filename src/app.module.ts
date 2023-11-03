@@ -40,6 +40,6 @@ import { RoomWebsocketGateway } from './room/room.websocket.gateway';
     RoomModule,
   ],
   controllers: [],
-  providers: [ChatGateway, RoomWebsocketGateway],
+  providers: [RoomWebsocketGateway],
 })
 export class AppModule {}
