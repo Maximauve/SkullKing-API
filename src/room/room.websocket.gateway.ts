@@ -44,8 +44,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
 
   @SubscribeMessage('joinRoom')
   async joinRoom(@ConnectedSocket() client: Socket, @MessageBody() slug: string): Promise<void> {
-    // console.log('API Client joinRoom -> ', client);
-    console.log(`API - ${client.id} is joining ${slug}`);
+    // console.log(`API - ${client.id} is joining ${slug}`);
     if (!await this.redisService.exists(`room:${slug}`)) {
       throw new HttpException("La room n'a pas été trouvé",  404);
     }
@@ -55,7 +54,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
 
   @SubscribeMessage('chat')
   async chat(@ConnectedSocket() client: Socket, @MessageBody() message: Message): Promise<Message> {
-    console.log("API chat message -> ", message);
+    // console.log("API chat message -> ", message);
     this.server.to(message.slug).emit('chat', message, client.data.user); // broadcast messages
     return message;
   }
