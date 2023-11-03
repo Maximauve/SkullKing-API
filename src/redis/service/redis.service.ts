@@ -19,4 +19,29 @@ export class RedisService {
   async get(key: string): Promise<string | null> {
     return this.redisClient.get(key);
   }
+
+  async hset(key: string, fieldAndValues: string[]): Promise<void> {
+    if (fieldAndValues.length % 2 !== 0) throw new Error("Le nombre d'arguments doit être pair.");
+    await this.redisClient.hset(key, ...fieldAndValues);
+  }
+
+  async hget(key: string, field: string): Promise<string | null> {
+    return this.redisClient.hget(key, field);
+  }
+
+  async hgetall(key: string): Promise<{[key: string]: string}> {
+    return this.redisClient.hgetall(key);
+  }
+
+  async exists(key: string): Promise<number> {
+    return this.redisClient.exists(key);
+  }
+
+  async keys(pattern: string): Promise<string[]> {
+    return this.redisClient.keys(pattern);
+  }
+
+  async del(key: string): Promise<void> {
+    await this.redisClient.del(key);
+  }
 }

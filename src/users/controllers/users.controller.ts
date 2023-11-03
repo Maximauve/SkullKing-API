@@ -35,17 +35,17 @@ export class UsersController {
     @Get('/:id')
     async GetId(@Param('id') id: string): Promise<{}> {
         if (!uuidRegex.test(id)){
-            throw new HttpException('Invalid id', 400);
+            throw new HttpException('ID Invalide', 400);
         }
         let user = await this.usersService.FindOneId(id);
-        if (!user) throw new HttpException('User not found', 404);
+        if (!user) throw new HttpException("L'utilisateur n'a pas été trouvé", 404);
         return user;
     }
 
     @UsePipes(ValidationPipe)
     @Post('/auth/sign-up')
     async SignUp(@Body() body: CreatedUserDto): Promise<{}> {
-        if (await this.usersService.checkUnknownUser(body)) throw new HttpException('User already exists', 409);
+        if (await this.usersService.checkUnknownUser(body)) throw new HttpException('L\'utilisateur existe déjà', 409);
         body.password = await hashPassword(body.password);
         return this.usersService.Create(body);
     }
@@ -54,8 +54,8 @@ export class UsersController {
     @Post('/auth/login')
     async Login(@Body() body: LoginDto) {
         let user = await this.usersService.FindOneEmail(body.email);
-        if (!user) throw new HttpException('User not found', 404);
-        if (!await comparePassword(body.password, user.password)) throw new HttpException('Password incorrect', 401);
+        if (!user) throw new HttpException("L'utilisateur n'a pas été trouvé", 404);
+        if (!await comparePassword(body.password, user.password)) throw new HttpException('Mot de passe incorrect', 401);
         return this.authService.Login(user);
     }
 
@@ -64,8 +64,8 @@ export class UsersController {
     async Delete(@Param('id') id: string, @Req() req): Promise<{}> {
         const me = await this.usersService.FindOneId(req.user.id);
         if (!me) throw new UnauthorizedException();
-        if (Role.Admin != me.role) throw new HttpException('Forbidden', 403);
-        if (!uuidRegex.test(id)) throw new HttpException('Invalid id', 400);
+        if (Role.Admin != me.role) throw new HttpException('Vous n\'êtes pas administrateur', 403);
+        if (!uuidRegex.test(id)) throw new HttpException('ID Invalide', 400);
         return this.usersService.Delete(id);
     }
 
@@ -75,13 +75,13 @@ export class UsersController {
     async Update(@Param('id') id: string, @Req() req, @Body() body: UpdatedUsersDto): Promise<{}> {
         const me = await this.usersService.FindOneId(req.user.id);
         if (!me) throw new UnauthorizedException();
-        if (Role.Admin != me.role && me.id != id) throw new HttpException('Forbidden', 403);
+            if (Role.Admin != me.role && me.id != id) throw new HttpException('Tu n\'es pas administrateur', 403);
         if (!uuidRegex.test(id)) throw new HttpException('Invalid id', 400);
-        if (await this.usersService.checkUnknownUser(body)) throw new HttpException('User already exists', 409);
+        if (await this.usersService.checkUnknownUser(body)) throw new HttpException('L\'utilisateur existe déjà', 409);
         if (body.password) body.password = await hashPassword(body.password);
         await this.usersService.Update(id, body);
         let user = await this.usersService.FindOneId(id);
-        if (!user) throw new HttpException('User not found', 404);
+        if (!user) throw new HttpException('L\'utilisateur n\'existe pas', 404);
         return user;
     }
 }

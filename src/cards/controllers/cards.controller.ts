@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get } from '@nestjs/common';
+import {Body, Controller, Post, Get, Param, Delete} from '@nestjs/common';
 import { CardsService } from '../services/cards.service';
 import {UseGuards, UsePipes} from "@nestjs/common/decorators";
 import {JwtAuthGuard} from "../../auth/guards/jwt-auth.guard";
@@ -21,5 +21,11 @@ export class CardsController {
   @Post("/")
   async create(@Body() card: CreatedCardDto) {
       return await this.cardsService.create(card);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete("/:id")
+  async delete(@Param('id') id: string) {
+      return await this.cardsService.delete(id);
   }
 }
