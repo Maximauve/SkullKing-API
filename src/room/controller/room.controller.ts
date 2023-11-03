@@ -4,6 +4,7 @@ import {UseGuards, UsePipes} from "@nestjs/common/decorators";
 import {JwtAuthGuard} from "../../auth/guards/jwt-auth.guard";
 import {CreatedRoomDto} from "../dto/room.dto";
 import {ValidationPipe} from "@nestjs/common/pipes";
+import {HttpException} from "@nestjs/common/exceptions";
 
 @Controller('room')
 export class RoomController {
@@ -25,12 +26,20 @@ export class RoomController {
   @UseGuards(JwtAuthGuard)
   @Get('/:slug')
   async getRoom(@Param('slug') slug: string): Promise<{}> {
-    return await this.roomService.getRoom(slug);
+    try {
+      return await this.roomService.getRoom(slug);
+    } catch (e) {
+      throw new HttpException(e.message, e.status)
+    }
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete('/:slug/close')
   async closeRoom(@Param('slug') slug: string): Promise<{}> {
-    return await this.roomService.closeRoom(slug);
+    try {
+      return await this.roomService.closeRoom(slug);
+    } catch (e) {
+      throw new HttpException(e.message, e.status)
+    }
   }
 }
