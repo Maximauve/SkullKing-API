@@ -23,11 +23,11 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
 
   async handleConnection(socket: Socket): Promise<void> {
     const socketId = socket.id;
-    const tokenData: {username: string, userId: string} = jwtDecode(socket.handshake.query.token as string); // todo: jwt decode
+    const tokenData: {username: string, id: string} = jwtDecode(socket.handshake.query.token as string); // todo: jwt decode
     socket.data.user = {
       socketId: socketId,
       username: tokenData.username,
-      userId: tokenData.userId,
+      userId: tokenData.id,
     };
     console.log(`New connecting... socket id:`, socketId);
   }

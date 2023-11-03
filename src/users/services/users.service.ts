@@ -60,7 +60,7 @@ export class UsersService {
       .from(User)
       .where("id= :id", { id: userId })
       .execute();
-    if (query.affected == 0) throw new HttpException("User not found",  404);
+    if (query.affected == 0) throw new HttpException("L'utilisateur n'existe pas",  404);
     return {};
   }
 
@@ -71,7 +71,7 @@ export class UsersService {
       .set(user)
       .where("id= :id", { id: userId })
       .execute();
-    if (query.affected == 0) throw new HttpException("User not found",  404);
+    if (query.affected == 0) throw new HttpException("L'utilisateur n'existe pas",  404);
     return {};
   }
 }

@@ -16,7 +16,7 @@ export class PirateGlossaryService {
 
   async GetThreeWord(): Promise<string> {
     const allWords = await this.pirateGlossaryRepository.find();
-    if (allWords.length < 3) throw new HttpException('Not enough words in the database', 501);
+    if (allWords.length < 3) throw new HttpException("Pas assez de mots dans la base de données", 501);
     return pickRandomElements(allWords);
   }
 
@@ -44,7 +44,7 @@ export class PirateGlossaryService {
       .from(PirateGlossary)
       .where("id= :id", { id: id })
       .execute();
-    if (query.affected == 0) throw new HttpException("Word not found",  404);
+    if (query.affected == 0) throw new HttpException("Le mot n'a pas été trouvé",  404);
     return {};
   }
 }

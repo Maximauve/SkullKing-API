@@ -32,11 +32,11 @@ export class PirateGlossaryController {
         if (await this.pirateGlossaryService.checkWord(w.toLowerCase())) continue;
         allPirates.push(await this.pirateGlossaryService.Create({word: w.toLowerCase()} as PirateGlossaryDto));
       }
-      if (allPirates.length <= 0) throw new HttpException('Words already exists', 409);
+      if (allPirates.length <= 0) throw new HttpException("Les mots existent déjà", 409);
       return allPirates;
     }
     pirateGlossary.word = pirateGlossary.word.toLowerCase();
-    if (await this.pirateGlossaryService.checkWord(pirateGlossary.word)) throw new HttpException('Word already exists', 409);
+    if (await this.pirateGlossaryService.checkWord(pirateGlossary.word)) throw new HttpException("Le mot existe déjà", 409);
     return this.pirateGlossaryService.Create(pirateGlossary as PirateGlossaryDto);
   }
 

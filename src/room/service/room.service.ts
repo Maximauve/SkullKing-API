@@ -42,11 +42,11 @@ export class RoomService {
   async closeRoom(slug: string): Promise<{}> {
     const roomKey = `room:${slug}`;
     if (await this.redisService.exists(roomKey) == 0) {
-      throw new HttpException("Room not found",  404);
+      throw new HttpException("La room n'existe pas",  404);
     }
     await this.redisService.del(roomKey);
     return {
-      message: `Room ${slug} deleted`
+      message: `La room ${slug} à été supprimé`
     }
   }
 
@@ -81,7 +81,7 @@ export class RoomService {
         await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify([...room.users, user]), 'currentPlayers', (room.currentPlayers + 1).toString()]);
       }
     } else {
-      throw new HttpException("Room not found",  404);
+      throw new HttpException("La room n'existe pas",  404);
     }
   }
 
@@ -134,7 +134,7 @@ export class RoomService {
   async getRoom(slug: string): Promise<RoomModel> {
     const roomKey = `room:${slug}`;
     if (await this.redisService.exists(roomKey) == 0) {
-      throw new HttpException("Room not found",  404);
+      throw new HttpException("La room n'existe pas",  404);
     }
     const roomData = await this.redisService.hgetall(roomKey);
     const room: RoomModel = {
