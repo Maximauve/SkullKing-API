@@ -87,7 +87,7 @@ export class UsersController {
 }
 
 async function hashPassword(plaintextPassword: string) {
-    return await bcrypt.hash(plaintextPassword, 10)
+    return await bcrypt.hash(plaintextPassword, 10);
 }
 
 async function comparePassword(plaintextPassword: string, hash: string) {
