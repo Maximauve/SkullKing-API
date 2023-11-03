@@ -94,7 +94,7 @@ export class UserTesting extends BaseRouteTesting {
                     });
                 });
                 describe('post /users/auth/login', () => {
-                    it('should return 200 (login)', async () => {
+                    it('should return 201 (login)', async () => {
                         await this.customPostWithoutAccessToken('auth/login')
                           .withJson({
                               email: commonEmail,

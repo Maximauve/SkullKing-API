@@ -17,7 +17,7 @@ export class RoomService {
     const room: RoomModel = {
       slug: await this.pirateGlossaryService.GetThreeWord(),
       maxPlayers: maxPlayers,
-      currentPlayers: 0,
+      currentPlayers: 1,
       password: password,
       users: [host],
       host: host,
@@ -71,9 +71,14 @@ export class RoomService {
   async addUserToRoom(slug: string, user: User) : Promise<void> {
     const room = await this.getRoom(slug);
     if (room) {
-      await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify([...room.users, user])]);
       if (room.host.userId == user.userId) {
-        await this.redisService.hset(`room:${slug}`, ['host', JSON.stringify(user)]);
+        room.users.find((element: User) => element.userId == user.userId).socketId = user.socketId;
+        await this.redisService.hset(`room:${slug}`, ['host', JSON.stringify(user), 'users', JSON.stringify(room.users)]);
+      } else if (room.users.find((element: User) => element.userId == user.userId)) {
+        room.users.find((element: User) => element.userId == user.userId).socketId = user.socketId;
+        await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(room.users)]);
+      } else {
+        await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify([...room.users, user]), 'currentPlayers', (room.currentPlayers + 1).toString()]);
       }
     } else {
       throw new HttpException("Room not found",  404);

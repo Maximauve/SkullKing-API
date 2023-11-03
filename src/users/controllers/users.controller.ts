@@ -45,7 +45,7 @@ export class UsersController {
     @UsePipes(ValidationPipe)
     @Post('/auth/sign-up')
     async SignUp(@Body() body: CreatedUserDto): Promise<{}> {
-        if (await this.usersService.checkUnknownUser(body)) throw new HttpException('User already exists', 409);
+        if (await this.usersService.checkUnknownUser(body)) throw new HttpException('L\'utilisateur existe déjà', 409);
         body.password = await hashPassword(body.password);
         return this.usersService.Create(body);
     }
@@ -55,7 +55,7 @@ export class UsersController {
     async Login(@Body() body: LoginDto) {
         let user = await this.usersService.FindOneEmail(body.email);
         if (!user) throw new HttpException('User not found', 404);
-        if (!await comparePassword(body.password, user.password)) throw new HttpException('Password incorrect', 401);
+        if (!await comparePassword(body.password, user.password)) throw new HttpException('Mot de passe incorrect', 401);
         return this.authService.Login(user);
     }
 
@@ -75,9 +75,9 @@ export class UsersController {
     async Update(@Param('id') id: string, @Req() req, @Body() body: UpdatedUsersDto): Promise<{}> {
         const me = await this.usersService.FindOneId(req.user.id);
         if (!me) throw new UnauthorizedException();
-        if (Role.Admin != me.role && me.id != id) throw new HttpException('Forbidden', 403);
+            if (Role.Admin != me.role && me.id != id) throw new HttpException('Tu n\'es pas administrateur', 403);
         if (!uuidRegex.test(id)) throw new HttpException('Invalid id', 400);
-        if (await this.usersService.checkUnknownUser(body)) throw new HttpException('User already exists', 409);
+        if (await this.usersService.checkUnknownUser(body)) throw new HttpException('L\'utilisateur existe déjà', 409);
         if (body.password) body.password = await hashPassword(body.password);
         await this.usersService.Update(id, body);
         let user = await this.usersService.FindOneId(id);
