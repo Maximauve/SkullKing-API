@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import {RedisService} from "../../redis/service/redis.service";
-import {RoomModel, Users} from "../room.model";
+import {RoomModel, User} from "../room.model";
 import {PirateGlossaryService} from "../../pirate-glossary/service/pirate-glossary.service";
 import {HttpException} from "@nestjs/common/exceptions";
-import {User} from "../../users/users.entity";
 
 @Injectable()
 export class RoomService {
@@ -14,7 +13,7 @@ export class RoomService {
     private pirateGlossaryService: PirateGlossaryService,
   ) {}
 
-  async createRoom(maxPlayers: number, host: Users, password?: string): Promise<RoomModel> {
+  async createRoom(maxPlayers: number, host: User, password?: string): Promise<RoomModel> {
     const room: RoomModel = {
       slug: await this.pirateGlossaryService.GetThreeWord(),
       maxPlayers: maxPlayers,
@@ -69,7 +68,7 @@ export class RoomService {
     return null;
   }
 
-  async addUserToRoom(slug: string, user: Users) : Promise<void> {
+  async addUserToRoom(slug: string, user: User) : Promise<void> {
     const room = await this.getRoom(slug);
     if (room) {
       await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify([...room.users, user])]);
@@ -86,7 +85,7 @@ export class RoomService {
     const filteredRooms = [];
     for (const roomKey of roomKeys) {
       const room = await this.redisService.hgetall(roomKey);
-      const user = await JSON.parse(room.users).find((user: Users) => user.socketId === socketId);
+      const user = await JSON.parse(room.users).find((user: User) => user.socketId === socketId);
       if (user) {
         filteredRooms.push(room);
       }
@@ -103,7 +102,7 @@ export class RoomService {
 
   async removeUserFromRoom(socketId: string, slug: string): Promise<void> {
     const room = await this.getRoom(slug)
-    room.users = room.users.filter((user: Users) => user.socketId !== socketId)
+    room.users = room.users.filter((user: User) => user.socketId !== socketId)
     if (room.users.length === 0) {
       await this.closeRoom(slug)
     }

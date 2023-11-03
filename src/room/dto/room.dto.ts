@@ -1,5 +1,5 @@
 import {IsInt, IsNotEmpty, IsOptional, Max, Min} from "class-validator";
-import {Users} from "../room.model";
+import {User} from "../room.model";
 
 export class CreatedRoomDto {
   @IsNotEmpty()
@@ -12,9 +12,16 @@ export class CreatedRoomDto {
   password?: string;
 
   @IsNotEmpty()
-  host: Users;
+  host: User;
 }
 
 export class RoomDto {
   slug : string;
+}
+
+export class Message {
+  user: User;
+  timeSent: string;
+  message: string;
+  slug: string;
 }

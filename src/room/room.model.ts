@@ -1,13 +1,13 @@
 export interface RoomModel {
   slug: string;
   password?: string;
-  users: Users[];
+  users: User[];
   maxPlayers: number;
   currentPlayers: number;
-  host: Users;
+  host: User;
 }
 
-export interface Users {
+export interface User {
   userId: string
   username: string
   socketId: string
