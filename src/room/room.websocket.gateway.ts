@@ -50,7 +50,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
     }
     await client.join(slug);
     await this.roomService.addUserToRoom(slug, client.data.user);
-    this.server.to(slug).emit('joinRoom', await this.roomService.usersInRoom(slug));
+    this.server.to(slug).emit('members', await this.roomService.usersInRoom(slug));
   }
 
   @SubscribeMessage('chat')
