@@ -10,3 +10,9 @@ async function bootstrap() {
   await app.listen(+process.env.PORT);
 }
 bootstrap();
+export function handler(...args) {
+  console.log("HANDLER -> ", args);
+}
+export default function (...args) {
+  console.log(args)
+};
