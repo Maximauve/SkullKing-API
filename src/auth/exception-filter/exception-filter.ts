@@ -5,6 +5,7 @@ import {Response} from 'express';
 export class AuthExceptionFilter implements ExceptionFilter {
   catch(exception: UnauthorizedException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
+    console.log("tu passes dednas ?")
     const response = ctx.getResponse<Response>();
     response.status(401).json({
       statusCode: 401,
