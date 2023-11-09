@@ -4,12 +4,12 @@ import {CardType} from "../../cards-types/cards-types.entity";
 import {CreatedCardTypeDto} from "../../cards-types/dto/cards-types.dto";
 
 export class CreatedCardDto {
-    @IsNotEmpty()
+    @IsNotEmpty({ message: "La valeur ne peut pas être vide"})
     value: number;
 
     @IsOptional()
     type: CreatedCardTypeDto;
 
-    @IsNotEmpty()
+    @IsNotEmpty({ message: "Le chemin de l'image ne peut pas être vide"})
     img_path: string;
 }

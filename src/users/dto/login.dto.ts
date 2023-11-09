@@ -1,11 +1,11 @@
 import { IsEmail, IsNotEmpty, IsUUID, MinLength } from 'class-validator';
 
 export class LoginDto {
-  @IsNotEmpty()
-  @IsEmail()
+  @IsNotEmpty({ message: "L'email ne peut pas être vide" })
+  @IsEmail({}, { message: "L'email doit être une adresse email valide" })
   email: string;
 
-  @IsNotEmpty()
-  @MinLength(6)
+  @IsNotEmpty({ message: "Le mot de passe ne peut pas être vide"})
+  @MinLength(6, { message: "Le mot de passe doit contenir au moins 6 caractères" })
   password: string;
 }
