@@ -75,7 +75,8 @@ export class UsersController {
     async Update(@Param('id') id: string, @Req() req, @Body() body: UpdatedUsersDto): Promise<{}> {
         const me = await this.usersService.FindOneId(req.user.id);
         if (!me) throw new UnauthorizedException();
-            if (Role.Admin != me.role && me.id != id) throw new HttpException('Tu n\'es pas administrateur', 403);
+        if (Role.Admin != me.role && me.id != id) throw new HttpException('Tu n\'es pas administrateur', 403);
+        if (body.role === "Admin" && me.role !== Role.Admin) throw new HttpException('Tu n\'es pas administrateur pour réaliser cette action', 403);
         if (!uuidRegex.test(id)) throw new HttpException('Invalid id', 400);
         if (await this.usersService.checkUnknownUser(body)) throw new HttpException('L\'utilisateur existe déjà', 409);
         if (body.password) body.password = await hashPassword(body.password);
