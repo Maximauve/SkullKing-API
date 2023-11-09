@@ -50,12 +50,12 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
     }
     await client.join(slug);
     await this.roomService.addUserToRoom(slug, client.data.user);
+    this.server.to(slug).emit('members', await this.roomService.usersInRoom(slug));
   }
 
   @SubscribeMessage('chat')
-  async chat(@ConnectedSocket() client: Socket, @MessageBody() message: Message): Promise<Message> {
+  async chat(@ConnectedSocket() client: Socket, @MessageBody() message: Message): Promise<void> {
     // console.log("API chat message -> ", message);
     this.server.to(message.slug).emit('chat', message, client.data.user); // broadcast messages
-    return message;
   }
 }

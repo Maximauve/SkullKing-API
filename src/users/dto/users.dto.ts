@@ -2,16 +2,16 @@ import {IsEmail, IsNotEmpty, IsOptional, MinLength} from "class-validator"
 import { Role } from "../role.enum";
 
 export class CreatedUserDto {
-    @IsNotEmpty()
-    @MinLength(3)
+    @IsNotEmpty({ message: "Le nom d'utilisateur ne peut pas être vide" })
+    @MinLength(3, { message: "Le mot de passe doit contenir au moins 6 caractères" })
     username: string;
 
-    @IsEmail()
-    @IsNotEmpty()
+    @IsNotEmpty({ message: "L'email ne peut pas être vide" })
+    @IsEmail({}, { message: "L'email doit être une adresse email valide" })
     email: string;
 
-    @IsNotEmpty()
-    @MinLength(6)
+    @IsNotEmpty({ message: "Le mot de passe ne peut pas être vide" })
+    @MinLength(6, { message: "Le mot de passe doit contenir au moins 6 caractères" })
     password: string;
 
     @IsOptional()
