@@ -11,7 +11,7 @@ import {Role} from '../role.enum';
 import {UpdatedUsersDto} from '../dto/usersUpdate.dto';
 import {uuidRegex} from "../variables.const";
 import {RedisService} from "../../redis/service/redis.service";
-const bcrypt = require('bcrypt');
+import * as bcrypt from 'bcrypt';
 
 
 @Controller('users')
@@ -21,13 +21,13 @@ export class UsersController {
 
     @UseGuards(JwtAuthGuard)
     @Get("/")
-    GetAll(): {} {
+    GetAll() {
         return this.usersService.GetAll();
     }
 
     @UseGuards(JwtAuthGuard)
     @Get('/me')
-    GetMe(@Req() req): {} {
+    GetMe(@Req() req) {
         return this.usersService.FindOneId(req.user.id);
     }
 
