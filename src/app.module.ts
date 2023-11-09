@@ -1,8 +1,8 @@
-import {Module} from '@nestjs/common';
-import {ConfigModule, ConfigService} from '@nestjs/config';
-import {TypeOrmModule} from '@nestjs/typeorm';
-import {User} from './users/users.entity';
-import {UsersModule} from './users/users.module';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import {TypeOrmModule, TypeOrmModuleAsyncOptions} from '@nestjs/typeorm';
+import { User } from './users/users.entity';
+import { UsersModule } from './users/users.module';
 import {CardsModule} from "./cards/cards.module";
 import {Card} from "./cards/cards.entity";
 import {CardTypeModule} from "./cards-types/cards-types.module";
@@ -23,17 +23,20 @@ import { HomeControllerController } from './home-controller/home-controller.cont
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        type: 'mariadb',
-        host: configService.get('DB_HOST'),
-        port: +configService.get<number>('DB_PORT'),
-        username: configService.get('DB_USERNAME'),
-        password: configService.get('DB_PASSWORD'),
-        database: configService.get('DB_NAME'),
+        type: 'postgres',
+        host: configService.get('POSTGRES_HOST'),
+        port: +configService.get<number>('POSTGRES_PORT'),
+        username: configService.get('POSTGRES_USER'),
+        password: configService.get('POSTGRES_PASSWORD'),
+        database: configService.get('POSTGRES_DATABASE'),
         entities: [User, Card, CardType, PirateGlossary],
         synchronize: true,
+        extra: {
+          ssl: true,
+        }
       }),
       inject: [ConfigService],
-    }),
+    } as TypeOrmModuleAsyncOptions),
     UsersModule,
     CardsModule,
     CardTypeModule,
