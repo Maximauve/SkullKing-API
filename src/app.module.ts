@@ -44,10 +44,6 @@ import { HomeControllerController } from './home-controller/home-controller.cont
   controllers: [HomeControllerController],
   providers: [RoomWebsocketGateway,
     {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-    {
       provide: APP_FILTER,
       useClass: AuthExceptionFilter,
     }
