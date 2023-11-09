@@ -7,13 +7,13 @@ export class RedisService {
 
   constructor() {
     this.redisClient = new Redis({
-      port: parseInt(process.env.KV_PORT),
-      host: process.env.KV_HOST,
-      password: process.env.KV_PASSWORD,
-      username: process.env.KV_USERNAME,
+      port: parseInt(process.env.REDIS_PORT),
+      host: process.env.REDIS_HOST,
+      username: process.env.REDIS_USERNAME,
+      password: process.env.REDIS_PASSWORD,
       db: 0,
       tls: {
-        host: process.env.KV_HOST,
+        host: process.env.REDIS_HOST,
       },
     });
   }
