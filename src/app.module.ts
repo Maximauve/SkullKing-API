@@ -1,19 +1,20 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './users/users.entity';
-import { UsersModule } from './users/users.module';
+import {Module} from '@nestjs/common';
+import {ConfigModule, ConfigService} from '@nestjs/config';
+import {TypeOrmModule} from '@nestjs/typeorm';
+import {User} from './users/users.entity';
+import {UsersModule} from './users/users.module';
 import {CardsModule} from "./cards/cards.module";
 import {Card} from "./cards/cards.entity";
 import {CardTypeModule} from "./cards-types/cards-types.module";
 import {CardType} from "./cards-types/cards-types.entity";
-import {RedisService} from "./redis/service/redis.service";
 import {RedisModule} from "./redis/redis.module";
 import {PirateGlossaryModule} from "./pirate-glossary/pirate-glossary.module";
 import {PirateGlossary} from "./pirate-glossary/pirate-glossary.entity";
-import { ChatGateway } from './chat/chat.gateway';
-import { RoomModule } from './room/room.module';
-import { RoomWebsocketGateway } from './room/room.websocket.gateway';
+import {RoomModule} from './room/room.module';
+import {APP_GUARD, APP_FILTER} from '@nestjs/core';
+import {RoomWebsocketGateway} from './room/room.websocket.gateway';
+import {JwtAuthGuard} from "./auth/guards/jwt-auth.guard";
+import {AuthExceptionFilter} from "./auth/exception-filter/exception-filter";
 
 @Module({
   imports: [
@@ -40,6 +41,16 @@ import { RoomWebsocketGateway } from './room/room.websocket.gateway';
     RoomModule,
   ],
   controllers: [],
-  providers: [RoomWebsocketGateway],
+  providers: [RoomWebsocketGateway,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AuthExceptionFilter,
+    }
+  ],
 })
-export class AppModule {}
+export class AppModule {
+}
