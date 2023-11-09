@@ -1,18 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
+let server: any;
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule,  { cors: true });
 
-
-
   await app.startAllMicroservices();
-  await app.listen(+process.env.PORT);
+  await app.init();
 }
 bootstrap();
-export function handler(...args) {
-  console.log("HANDLER -> ", args);
-}
-export default function (...args) {
-  console.log(args)
+
+export const handler: any = async (
+    event: any,
+    context: any,
+    callback: any,
+) => {
+  server = server ?? (await bootstrap());
+  return server(event, context, callback);
 };
