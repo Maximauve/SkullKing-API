@@ -15,6 +15,7 @@ import {APP_GUARD, APP_FILTER} from '@nestjs/core';
 import {RoomWebsocketGateway} from './room/room.websocket.gateway';
 import {JwtAuthGuard} from "./auth/guards/jwt-auth.guard";
 import {AuthExceptionFilter} from "./auth/exception-filter/exception-filter";
+import { HomeControllerController } from './home-controller/home-controller.controller';
 
 @Module({
   imports: [
@@ -40,7 +41,7 @@ import {AuthExceptionFilter} from "./auth/exception-filter/exception-filter";
     PirateGlossaryModule,
     RoomModule,
   ],
-  controllers: [],
+  controllers: [HomeControllerController],
   providers: [RoomWebsocketGateway,
     {
       provide: APP_GUARD,
