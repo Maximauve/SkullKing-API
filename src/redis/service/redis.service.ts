@@ -15,6 +15,7 @@ export class RedisService {
       tls: {
         host: process.env.REDIS_HOST,
         rejectUnauthorized: false,
+        requestCert: true,
       },
     });
   }
