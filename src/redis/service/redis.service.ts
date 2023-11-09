@@ -14,6 +14,7 @@ export class RedisService {
       db: 0,
       tls: {
         host: process.env.REDIS_HOST,
+        rejectUnauthorized: false,
       },
     });
   }
