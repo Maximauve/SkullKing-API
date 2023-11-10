@@ -34,9 +34,9 @@ import { HomeControllerController } from './home-controller/home-controller.cont
         database: configService.get('POSTGRES_DATABASE'),
         entities: [User, Card, CardType, PirateGlossary],
         synchronize: true,
-        // extra: {
-        //   ssl: false,
-        // }
+        extra: {
+          ssl: PROCESS.env.POSTGRES_SSL === 'true',
+        }
       }),
       inject: [ConfigService],
     } as TypeOrmModuleAsyncOptions),
