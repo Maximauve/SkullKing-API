@@ -34,6 +34,7 @@ export class RoomService {
       'password', room.password ?? '',
       'users', JSON.stringify(room.users),
       'host', JSON.stringify(room.host),
+      'slug', room.slug,
     ]);
     this.rooms = [...this.rooms, room];
     return room;
@@ -44,7 +45,6 @@ export class RoomService {
     if (await this.redisService.exists(roomKey) == 0) {
       throw new HttpException("La room n'existe pas",  404);
     }
-    console.log(`La route a été supprimé : ${slug}`)
     await this.redisService.del(roomKey);
     return {
       message: `La room ${slug} à été supprimé`
@@ -109,9 +109,7 @@ export class RoomService {
   async removeUserFromRoom(socketId: string, slug: string): Promise<void> {
     const room = await this.getRoom(slug)
     room.users = room.users.filter((user: User) => user.socketId !== socketId)
-    if (room.users.length === 0) {
-      await this.closeRoom(slug)
-    }
+    await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(room.users), 'currentPlayers', (room.currentPlayers - 1).toString()]);
   }
 
   async getRooms(): Promise<RoomModel[]> {
@@ -135,7 +133,7 @@ export class RoomService {
   async getRoom(slug: string): Promise<RoomModel> {
     const roomKey = `room:${slug}`;
     if (await this.redisService.exists(roomKey) == 0) {
-      throw new HttpException("La room n'existe pas",  404);
+      throw new HttpException(`La room ${slug} n'existe pas`,  404);
     }
     const roomData = await this.redisService.hgetall(roomKey);
     const room: RoomModel = {
