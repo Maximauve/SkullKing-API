@@ -19,7 +19,10 @@ import { HomeControllerController } from './home-controller/home-controller.cont
 
 @Module({
   imports: [
-    ConfigModule.forRoot({isGlobal: true}),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env.local', '.env']
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -31,9 +34,9 @@ import { HomeControllerController } from './home-controller/home-controller.cont
         database: configService.get('POSTGRES_DATABASE'),
         entities: [User, Card, CardType, PirateGlossary],
         synchronize: true,
-        extra: {
-          ssl: true,
-        }
+        // extra: {
+        //   ssl: false,
+        // }
       }),
       inject: [ConfigService],
     } as TypeOrmModuleAsyncOptions),
