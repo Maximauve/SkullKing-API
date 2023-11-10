@@ -13,7 +13,7 @@ import {RoomService} from "./service/room.service";
 import {Message} from "./dto/room.dto";
 import { jwtDecode } from "jwt-decode";
 
-@WebSocketGateway(8001, { cors : '*'})
+@WebSocketGateway({ cors : '*'})
 export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(private readonly redisService: RedisService,
