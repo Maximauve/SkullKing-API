@@ -47,7 +47,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
     console.log(`API - ${client.data.user.username} is joining ${slug}`)
     try {
       if (await this.redisService.exists(`room:${slug}`)) {
-        await this.roomService.addUserToRoom(slug, client.data.user).then(() => {
+        this.roomService.addUserToRoom(slug, client.data.user).then(() => {
           client.join(slug);
           this.server.to(slug).emit('members', this.roomService.usersInRoom(slug));
         })
