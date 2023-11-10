@@ -35,7 +35,7 @@ import { HomeControllerController } from './home-controller/home-controller.cont
         entities: [User, Card, CardType, PirateGlossary],
         synchronize: true,
         extra: {
-          ssl: PROCESS.env.POSTGRES_SSL === 'true',
+          ssl: configService.get('POSTGRES_SSL') === 'true',
         }
       }),
       inject: [ConfigService],
