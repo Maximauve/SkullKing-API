@@ -21,6 +21,7 @@ export class RoomService {
       password: password,
       users: [host],
       host: host,
+      started: false,
     }
     let roomKey = `room:${room.slug}`;
     // check if key exists in redis to not overwrite
@@ -35,6 +36,7 @@ export class RoomService {
       'users', JSON.stringify(room.users),
       'host', JSON.stringify(room.host),
       'slug', room.slug,
+      'started', room.started.toString(),
     ]);
     this.rooms = [...this.rooms, room];
     return room;
@@ -63,6 +65,7 @@ export class RoomService {
           password: roomData.password || '',
           users: JSON.parse(roomData.users || '[]'),
           host: JSON.parse(roomData.host),
+          started: roomData.started == 'true',
         };
       }
     }
@@ -72,6 +75,8 @@ export class RoomService {
   async addUserToRoom(slug: string, user: User) : Promise<void> {
     const room = await this.getRoom(slug);
     if (room) {
+      if (room.started == true) throw new HttpException("La partie à déjà commencé",  409);
+      if (room.currentPlayers >= room.maxPlayers && !room.users.find(element => user.userId === element.userId)) throw new HttpException("La room est pleine",  409);
       if (room.host.userId == user.userId) {
         room.users.find((element: User) => element.userId == user.userId).socketId = user.socketId;
         await this.redisService.hset(`room:${slug}`, ['host', JSON.stringify(user), 'users', JSON.stringify(room.users)]);
@@ -124,6 +129,7 @@ export class RoomService {
         password: roomData.password || '',
         users: JSON.parse(roomData.users || '[]'),
         host: JSON.parse(roomData.host),
+        started: roomData.started == 'true',
       };
       rooms.push(room);
     }
@@ -142,7 +148,8 @@ export class RoomService {
       currentPlayers: parseInt(roomData.currentPlayers, 10),
       password: roomData.password || '',
       users: JSON.parse(roomData.users || '[]'),
-      host: JSON.parse(roomData.host)
+      host: JSON.parse(roomData.host),
+      started: roomData.started == 'true',
     };
     return room;
   }

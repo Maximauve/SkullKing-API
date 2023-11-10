@@ -5,6 +5,7 @@ export interface RoomModel {
   maxPlayers: number;
   currentPlayers: number;
   host: User;
+  started: boolean;
 }
 
 export interface User {
