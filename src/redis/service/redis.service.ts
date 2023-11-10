@@ -6,8 +6,10 @@ export class RedisService {
   private redisClient: Redis;
 
   constructor() {
-    this.redisClient = new Redis({
-      port: parseInt(process.env.REDIS_PORT),
+    this.redisClient = new Redis(
+        process.env.REDISCLOUD_URL
+        /*{
+      port: 16655,
       host: process.env.REDIS_HOST,
       username: process.env.REDIS_USERNAME,
       password: process.env.REDIS_PASSWORD,
@@ -15,9 +17,8 @@ export class RedisService {
       tls: {
         host: process.env.REDIS_HOST,
         rejectUnauthorized: false,
-        requestCert: true,
       },
-    });
+    }*/);
   }
 
   async set(key: string, value: string): Promise<void> {
