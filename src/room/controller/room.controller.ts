@@ -6,24 +6,22 @@ import {CreatedRoomDto} from "../dto/room.dto";
 import {ValidationPipe} from "@nestjs/common/pipes";
 import {HttpException} from "@nestjs/common/exceptions";
 
+@UseGuards(JwtAuthGuard)
 @Controller('room')
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
-  @UseGuards(JwtAuthGuard)
   @UsePipes(ValidationPipe)
   @Post('')
   async createRoom(@Body() roomCreated: CreatedRoomDto): Promise<{}> {
     return await this.roomService.createRoom(roomCreated.maxPlayers, roomCreated.host, roomCreated?.password ?? null);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('')
   async getRooms(): Promise<{}> {
     return await this.roomService.getRooms();
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('/:slug')
   async getRoom(@Param('slug') slug: string): Promise<{}> {
     try {
@@ -33,7 +31,6 @@ export class RoomController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete('/:slug/close')
   async closeRoom(@Param('slug') slug: string): Promise<{}> {
     try {

@@ -8,21 +8,19 @@ import {PirateGlossaryMultipleDto} from "../dto/pirate-glossary-multiple.dto";
 import {PirateGlossary} from "../pirate-glossary.entity";
 import {HttpException} from "@nestjs/common/exceptions";
 
-
+@UseGuards(JwtAuthGuard)
 @Controller('pirate-glossary')
 export class PirateGlossaryController {
 
   constructor(private pirateGlossaryService: PirateGlossaryService) {
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get("/")
   async GetThreeWord(): Promise<{}> {
     let words = await this.pirateGlossaryService.GetThreeWord();
     return { "room" : words };
   }
 
-  @UseGuards(JwtAuthGuard)
   @UsePipes(ValidationPipe)
   @Post("/")
   async Create(@Body() pirateGlossary: PirateGlossaryDto | PirateGlossaryMultipleDto): Promise<PirateGlossary[] | PirateGlossary> {
@@ -40,7 +38,6 @@ export class PirateGlossaryController {
     return this.pirateGlossaryService.Create(pirateGlossary as PirateGlossaryDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete("/:id")
   async Delete(@Param('id') id: string) {
     return await this.pirateGlossaryService.delete(id);

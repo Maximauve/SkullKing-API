@@ -10,20 +10,17 @@ export class CardsController {
 
   constructor(private cardsService: CardsService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get("/")
   async getAll() {
       return await this.cardsService.getAll();
   }
 
   @UsePipes(ValidationPipe)
-  @UseGuards(JwtAuthGuard)
   @Post("/")
   async create(@Body() card: CreatedCardDto) {
       return await this.cardsService.create(card);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete("/:id")
   async delete(@Param('id') id: string) {
       return await this.cardsService.delete(id);
