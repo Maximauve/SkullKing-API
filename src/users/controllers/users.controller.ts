@@ -54,7 +54,7 @@ export class UsersController {
     @Post('/auth/login')
     async Login(@Body() body: LoginDto) {
         let user = await this.usersService.FindOneEmail(body.email);
-        if (!user) throw new HttpException("L'utilisateur n'a pas été trouvé", 404);
+        if (!user) throw new HttpException("Aucun email associé à ce compte", 401);
         if (!await comparePassword(body.password, user.password)) throw new HttpException('Mot de passe incorrect', 401);
         return this.authService.Login(user);
     }
