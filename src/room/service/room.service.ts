@@ -78,7 +78,11 @@ export class RoomService {
       if (room.started == true) throw new HttpException("La partie à déjà commencé",  409);
       if (room.currentPlayers >= room.maxPlayers && !room.users.find(element => user.userId === element.userId)) throw new HttpException("La room est pleine",  409);
       if (room.host.userId == user.userId) {
-        room.users.find((element: User) => element.userId == user.userId).socketId = user.socketId;
+        console.log("Room : ", room)
+        console.log("User : ", user)
+        let host = room.users.find((element: User) => element.userId == user.userId)
+        if (!host) room.users.push(user)
+        else host.socketId = user.socketId
         await this.redisService.hset(`room:${slug}`, ['host', JSON.stringify(user), 'users', JSON.stringify(room.users)]);
       } else if (room.users.find((element: User) => element.userId == user.userId)) {
         room.users.find((element: User) => element.userId == user.userId).socketId = user.socketId;
