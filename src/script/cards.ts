@@ -3,47 +3,53 @@ import { type CardType } from './CardType';
 
 // Types of cards
 const EscapeType: CardType = {
+  slug: 'escape',
   name: 'Fuite',
   superior_to: []
 };
 
 const GreenType: CardType = {
+  slug: 'green',
   name: 'Vert',
-  superior_to: [EscapeType]
+  superior_to: ['escape']
 };
 
 const YellowType: CardType = {
+  slug: 'yellow',
   name: 'Jaune',
-  superior_to: [EscapeType]
+  superior_to: ['escape']
 };
 
 const PurpleType: CardType = {
+  slug: 'purple',
   name: 'Violet',
-  superior_to: [EscapeType]
+  superior_to: ['escape']
 };
 
 const BlackType: CardType = {
+  slug: 'black',
   name: 'Atout',
-  superior_to: [EscapeType, GreenType, YellowType, PurpleType]
+  superior_to: ['escape', 'green', 'yellow', 'purple']
 };
 
 const MermaidType: CardType = {
+  slug: 'mermaid',
   name: 'Sirène',
-  superior_to: [EscapeType, GreenType, YellowType, PurpleType, BlackType],
+  superior_to: ['escape', 'green', 'yellow', 'purple', 'black', 'skull-king'],
   circular_winner: true
 };
 
 const PirateType: CardType = {
+  slug: 'pirate',
   name: 'Pirate',
-  superior_to: [EscapeType, GreenType, YellowType, PurpleType, BlackType, MermaidType]
+  superior_to: ['escape', 'green', 'yellow', 'purple', 'black', 'mermaid']
 };
 
 const SkullKingType: CardType = {
+  slug: 'skull-king',
   name: 'Skull King',
-  superior_to: [EscapeType, GreenType, YellowType, PurpleType, BlackType, PirateType]
+  superior_to: ['escape', 'green', 'yellow', 'purple', 'black', 'pirate']
 };
-
-MermaidType.superior_to.push(SkullKingType);
 
 const GreenCards: Card[] = [];
 const YellowCards: Card[] = [];

@@ -1,6 +1,6 @@
 export interface CardType {
-  id?: number
+  slug: string
   name: string
-  superior_to: CardType[]
+  superior_to: string[]
   circular_winner?: boolean
 }
