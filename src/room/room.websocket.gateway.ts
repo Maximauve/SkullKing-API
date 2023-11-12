@@ -21,7 +21,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
 
   @WebSocketServer() server;
 
-  async handleConnection(socket: Socket): Promise<void> {
+  handleConnection(socket: Socket): void {
     const socketId = socket.id;
     const tokenData: {username: string, id: string} = jwtDecode(socket.handshake.query.token as string); // todo: jwt decode
     socket.data.user = {
@@ -32,10 +32,8 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
     console.log(`New connecting... socket id:`, socketId);
   }
 
-  async handleDisconnect(socket: Socket): Promise<void> {
-    const socketId = socket.id;
-    await this.roomService.removeUserFromAllRooms(socketId);
-    console.log(`Disconnecting... socket id:`, socketId);
+  handleDisconnect(socket: Socket): void {
+    console.log(`Disconnecting... socket id:`, socket.id);
   }
 
   @SubscribeMessage('joinRoom')
@@ -63,7 +61,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
   }
 
   @SubscribeMessage('chat')
-  async chat(@ConnectedSocket() client: Socket, @MessageBody() message: Message): Promise<void> {
+  chat(@ConnectedSocket() client: Socket, @MessageBody() message: Message): void {
     // console.log("API chat message -> ", message);
     this.server.to(message.slug).emit('chat', message, client.data.user); // broadcast messages
   }
