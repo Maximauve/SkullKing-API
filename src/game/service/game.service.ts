@@ -10,7 +10,7 @@ export class GameService {
     return FullCards;
   }
 
-  async flushCards(): Promise<{}> {
+  async flushCards(): Promise<Card[]> {
     let fullCards: Card[] = FullCards;
     fullCards.sort(() => Math.random() - 0.5);
     return fullCards;

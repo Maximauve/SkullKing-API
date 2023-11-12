@@ -42,4 +42,14 @@ export class RoomController {
       throw new HttpException(e.message, e.status)
     }
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('/:slug/kick/:username')
+  async kickUser(@Param('slug') slug: string, @Param('username') username: string): Promise<void> {
+    try {
+      return await this.roomService.kickUser(slug, username);
+    } catch (e) {
+      throw new HttpException(e.message, e.status)
+    }
+  }
 }

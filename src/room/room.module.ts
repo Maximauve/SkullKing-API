@@ -5,11 +5,12 @@ import {forwardRef} from "@nestjs/common/utils";
 import {RedisModule} from "../redis/redis.module";
 import {PirateGlossaryModule} from "../pirate-glossary/pirate-glossary.module";
 import {RoomWebsocketGateway} from "./room.websocket.gateway";
+import {GameModule} from "../game/game.module";
 
 @Module({
-  imports: [forwardRef(() => RedisModule), forwardRef(() => PirateGlossaryModule)],
+  imports: [forwardRef(() => RedisModule), forwardRef(() => PirateGlossaryModule), forwardRef(() => GameModule)],
   controllers: [RoomController],
-  providers: [RoomService, RoomWebsocketGateway],
+  providers: [RoomService],
   exports: [RoomService]
 })
 export class RoomModule {}

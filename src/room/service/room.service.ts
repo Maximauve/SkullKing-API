@@ -3,6 +3,8 @@ import {RedisService} from "../../redis/service/redis.service";
 import {RoomModel, User} from "../room.model";
 import {PirateGlossaryService} from "../../pirate-glossary/service/pirate-glossary.service";
 import {HttpException} from "@nestjs/common/exceptions";
+import {GameService} from "../../game/service/game.service";
+import {Card} from "../../script/Card";
 
 @Injectable()
 export class RoomService {
@@ -11,6 +13,7 @@ export class RoomService {
   constructor (
     private redisService: RedisService,
     private pirateGlossaryService: PirateGlossaryService,
+    private gameService: GameService,
   ) {}
 
   async createRoom(maxPlayers: number, host: User, password?: string): Promise<RoomModel> {
@@ -158,6 +161,33 @@ export class RoomService {
 
   async usersInRoom(slug: string): Promise<User[]> {
     const room = await this.getRoom(slug);
+    return room.users;
+  }
+
+  async kickUser(slug: string, username: string): Promise<void> {
+    const room = await this.getRoom(slug);
+    const user = room.users.find((user: User) => user.username === username);
+    if (!user) throw new HttpException("L'utilisateur n'existe pas", 404);
+    await this.removeUserFromRoom(user.socketId, slug);
+  }
+
+  async startGame(slug: string, user: User): Promise<User[]> {
+    const room = await this.getRoom(slug);
+    if (room.host.userId != user.userId) throw new HttpException("Vous n'êtes pas le créateur de la room", 403);
+    if (room.currentPlayers < 2) throw new HttpException("Il n'y a pas assez de joueurs", 409);
+    if (room.started == true) throw new HttpException("La partie à déjà commencé", 409);
+    room.users = await this.newRound({ slug: slug, nbCards: 1 });
+    await this.redisService.hset(`room:${slug}`, ['started', 'true']);
+    return room.users;
+  }
+
+  async newRound(body: { slug: string, nbCards: number }): Promise<User[]> {
+    const room = await this.getRoom(body.slug);
+    const fullCards: Card[] = await this.gameService.flushCards();
+    for (const [index, user] of room.users.entries()) {
+      user.cards = fullCards.slice(body.nbCards * index, body.nbCards * (index+1));
+    }
+    await this.redisService.hset(`room:${body.slug}`, ['users', JSON.stringify(room.users)]);
     return room.users;
   }
 }

@@ -14,8 +14,10 @@ export class GameController {
     return await this.gameService.getCards();
   }
 
-  @Get('flushCards')
+  @Get('random-cards')
   async flushCards(): Promise<{}> {
     return await this.gameService.flushCards();
   }
+
+
 }

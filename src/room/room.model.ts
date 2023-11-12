@@ -1,3 +1,5 @@
+import {Card} from "../script/Card";
+
 export interface RoomModel {
   slug: string;
   password?: string;
@@ -12,4 +14,5 @@ export interface User {
   userId: string
   username: string
   socketId: string
+  cards: Card[]
 }
