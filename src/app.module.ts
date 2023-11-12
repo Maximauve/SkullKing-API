@@ -16,6 +16,7 @@ import {RoomWebsocketGateway} from './room/room.websocket.gateway';
 import {JwtAuthGuard} from "./auth/guards/jwt-auth.guard";
 import {AuthExceptionFilter} from "./auth/exception-filter/exception-filter";
 import { HomeControllerController } from './home-controller/home-controller.controller';
+import { GameModule } from './game/game.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { HomeControllerController } from './home-controller/home-controller.cont
     RedisModule,
     PirateGlossaryModule,
     RoomModule,
+    GameModule,
   ],
   controllers: [HomeControllerController],
   providers: [RoomWebsocketGateway,
