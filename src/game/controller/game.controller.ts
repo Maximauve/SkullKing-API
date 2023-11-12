@@ -13,4 +13,9 @@ export class GameController {
   async getCards(): Promise<{}> {
     return await this.gameService.getCards();
   }
+
+  @Get('flushCards')
+  async flushCards(): Promise<{}> {
+    return await this.gameService.flushCards();
+  }
 }

@@ -1,12 +1,18 @@
 import {Injectable} from "@nestjs/common";
 import FullCards from "../../script/cards";
-import {stringify, toJSON, parse} from 'flatted';
+import {Card} from "../../script/Card";
+
 @Injectable()
 export class GameService {
   constructor() {}
 
   async getCards(): Promise<{}> {
-    console.log(parse(stringify(FullCards)))
-    return parse(stringify(FullCards));
+    return FullCards;
+  }
+
+  async flushCards(): Promise<{}> {
+    let fullCards: Card[] = FullCards;
+    fullCards.sort(() => Math.random() - 0.5);
+    return fullCards;
   }
 }
