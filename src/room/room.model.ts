@@ -15,4 +15,10 @@ export interface User {
   username: string
   socketId: string
   cards: Card[]
+  points: number
+}
+
+export interface Play {
+  card: Card
+  user: User
 }
