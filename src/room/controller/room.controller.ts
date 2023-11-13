@@ -5,6 +5,7 @@ import {JwtAuthGuard} from "../../auth/guards/jwt-auth.guard";
 import {CreatedRoomDto} from "../dto/room.dto";
 import {ValidationPipe} from "@nestjs/common/pipes";
 import {HttpException} from "@nestjs/common/exceptions";
+import {Play} from "../room.model";
 
 @Controller('room')
 export class RoomController {
@@ -51,5 +52,10 @@ export class RoomController {
     } catch (e) {
       throw new HttpException(e.message, e.status)
     }
+  }
+
+  @Post("/test")
+  async test(@Body() body: any): Promise<[Play, any]> {
+    return await this.roomService.whoWinTheTrick(body);
   }
 }

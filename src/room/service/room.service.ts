@@ -198,7 +198,8 @@ export class RoomService {
     if (['mermaid', 'pirate', 'skull-king'].every(item => plays.map(play => play.card.type.slug).includes(item))) {
       // si il y a une sirène, un pirate et le skull king, la sirene l'emporte
       winner = plays.find(play => play.card.type.slug == 'mermaid');
-      return [winner, 40];
+      bonus += plays.map(item => checkBonus(item)).reduce((a, b) => a + b, 0);
+      return [winner, bonus + 40];
     }
     if (winner.card.value && winner.card.value == 14) {
       if (winner.card.type.slug == 'black') {

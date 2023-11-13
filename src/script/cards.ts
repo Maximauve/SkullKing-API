@@ -36,7 +36,6 @@ const MermaidType: CardType = {
   slug: 'mermaid',
   name: 'Sirène',
   superior_to: ['escape', 'green', 'yellow', 'purple', 'black', 'skull-king'],
-  circular_winner: true
 };
 
 const PirateType: CardType = {
