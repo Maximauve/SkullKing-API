@@ -12,6 +12,7 @@ import {HttpException} from "@nestjs/common/exceptions";
 import {RoomService} from "./service/room.service";
 import {Message} from "./dto/room.dto";
 import { jwtDecode } from "jwt-decode";
+import {Pli, Round} from "./room.model";
 
 @WebSocketGateway({ cors : '*', namespace: 'room'})
 export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -71,7 +72,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
     console.log(`API - ${client.data.user.username} is starting ${slug}`)
     try {
       if (await this.redisService.exists(`room:${slug}`)) {
-        await this.roomService.startGame(slug, client.data.user).then((users) => {
+        this.roomService.startGame(slug, client.data.user).then((users) => {
           for (const user of users) {
             this.server.to(user.socketId).emit('cards', user.cards);
           }
@@ -101,6 +102,50 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
             this.server.to(user.socketId).emit('cards', user.cards);
           }
           this.server.to(body.slug).emit('newRound', body.slug); // broadcast messages newRound
+        })
+        .catch((e) => {
+          console.log(e)
+          throw new HttpException(e.message, e.status);
+        });
+      } else {
+        throw new HttpException("La room n'existe pas", 404);
+      }
+    } catch (e) {
+      return {
+        message: e.message,
+        status: e.status,
+      }
+    }
+  }
+
+  @SubscribeMessage('endRound')
+  async endRound(@ConnectedSocket() client: Socket, @MessageBody() round : Round): Promise<{}> {
+    try {
+      if (await this.redisService.exists(`room:${round.slug}`)) {
+        this.roomService.endRound(round).then((users) => {
+          this.server.to(round.slug).emit('endRound', users); // broadcast messages endRound
+        })
+        .catch((e) => {
+          console.log(e)
+          throw new HttpException(e.message, e.status);
+        });
+      } else {
+        throw new HttpException("La room n'existe pas", 404);
+      }
+    } catch (e) {
+      return {
+        message: e.message,
+        status: e.status,
+      }
+    }
+  }
+
+  @SubscribeMessage('newPli')
+  async newPli(@ConnectedSocket() client: Socket, @MessageBody() pli : Pli): Promise<{}> {
+    try {
+      if (await this.redisService.exists(`room:${pli.slug}`)) {
+        this.roomService.newPli(pli).then(([winner, bonus]) => {
+          this.server.to(pli.slug).emit('newPli', [winner, bonus]); // broadcast messages newPli
         })
         .catch((e) => {
           console.log(e)

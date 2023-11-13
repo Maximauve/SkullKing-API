@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {RedisService} from "../../redis/service/redis.service";
-import {Play, RoomModel, User} from "../room.model";
+import {Play, Pli, RoomModel, Round, User} from "../room.model";
 import {PirateGlossaryService} from "../../pirate-glossary/service/pirate-glossary.service";
 import {HttpException} from "@nestjs/common/exceptions";
 import {GameService} from "../../game/service/game.service";
@@ -191,6 +191,21 @@ export class RoomService {
     return room.users;
   }
 
+  async endRound(round: Round): Promise<void> {
+    const room = await this.getRoom(round.slug);
+    const users = room.users.map((user: User) => {
+      user.cards = [];
+      return user;
+    });
+    await this.redisService.hset(`room:${round.slug}`, ['users', JSON.stringify(users)]);
+  }
+
+  async newPli(pli: Pli): Promise<[Play, number]> {
+    const [winner, bonus] = await this.whoWinTheTrick(pli.plays);
+    await this.redisService.hset(`room:${pli.slug}:${pli.nbRound}:${pli.nbPli}`, ['winner', JSON.stringify(winner.user), 'bonus', bonus.toString()]);
+    return [winner, bonus];
+  }
+
   async whoWinTheTrick(plays: Play[]): Promise<[Play, number]> {
     let bonus = 0;
     let winner: Play = plays[0];
@@ -295,6 +310,8 @@ const checkBonus = (play1: Play, play2: Play = null): number => {
 //
 // winner -> user
 // bonus -> points
+// plays -> [{"card": card, "user": user}, play, play]
+
 // keys('room:slug:nbManche:*')
 
 // ===> CHAQUE CARTE JOUER

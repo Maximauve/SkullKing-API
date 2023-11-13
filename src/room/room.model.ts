@@ -22,3 +22,15 @@ export interface Play {
   card: Card
   user: User
 }
+
+export interface Pli {
+  plays: Play[]
+  slug: string
+  nbRound: number
+  nbPli: number
+}
+
+export interface Round {
+  slug: string
+  nbRound: number
+}
