@@ -23,6 +23,12 @@ export interface Play {
   user: User
 }
 
+export interface PlayCard extends Play {
+  slug: string
+  nbRound: number
+  nbPli: number
+}
+
 export interface Pli {
   plays: Play[]
   slug: string

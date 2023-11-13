@@ -18,6 +18,4 @@ export class GameController {
   async flushCards(): Promise<{}> {
     return await this.gameService.flushCards();
   }
-
-
 }
