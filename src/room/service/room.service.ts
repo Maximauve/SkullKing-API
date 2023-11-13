@@ -1,10 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
 import {RedisService} from "../../redis/service/redis.service";
-import {Play, Pli, RoomModel, Round, User} from "../room.model";
+import {RoomModel, User, UserInRoom} from "../room.model";
 import {PirateGlossaryService} from "../../pirate-glossary/service/pirate-glossary.service";
 import {HttpException} from "@nestjs/common/exceptions";
-import {GameService} from "../../game/service/game.service";
-import {Card} from "../../script/Card";
 
 @Injectable()
 export class RoomService {
@@ -158,9 +156,30 @@ export class RoomService {
     return room;
   }
 
+  async getRoomUsersInRoom(slug: string): Promise<UserInRoom[]> {
+    const roomKey = `room:${slug}`;
+    if (await this.redisService.exists(roomKey) == 0) {
+      throw new HttpException(`La room ${slug} n'existe pas`,  404);
+    }
+    const roomData = await this.redisService.hgetall(roomKey);
+    const users = JSON.parse(roomData.users || '[]');
+    return users.map((user: User) => {
+      return {
+        userId: user.userId,
+        username: user.username,
+        socketId: user.socketId,
+        points: user.points,
+      }
+    }) as UserInRoom[];
+  }
+
   async usersInRoom(slug: string): Promise<User[]> {
     const room = await this.getRoom(slug);
     return room.users;
+  }
+
+  async usersWithoutCardsInRoom(slug: string): Promise<UserInRoom[]> {
+    return await this.getRoomUsersInRoom(slug);
   }
 
   async kickUser(slug: string, username: string): Promise<void> {

@@ -6,10 +6,12 @@ import {CreatedRoomDto} from "../dto/room.dto";
 import {ValidationPipe} from "@nestjs/common/pipes";
 import {HttpException} from "@nestjs/common/exceptions";
 import {Play} from "../room.model";
+import {GameService} from "../../game/service/game.service";
 
 @Controller('room')
 export class RoomController {
-  constructor(private readonly roomService: RoomService) {}
+  constructor(private readonly roomService: RoomService,
+              private readonly gameService: GameService) {}
 
   @UseGuards(JwtAuthGuard)
   @UsePipes(ValidationPipe)
@@ -56,6 +58,6 @@ export class RoomController {
 
   @Post("/test")
   async test(@Body() body: any): Promise<[Play, any]> {
-    return await this.roomService.whoWinTheTrick(body);
+    return await this.gameService.whoWinTheTrick(body);
   }
 }

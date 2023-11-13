@@ -10,12 +10,15 @@ export interface RoomModel {
   started: boolean;
 }
 
-export interface User {
+export interface UserInRoom {
   userId: string
   username: string
   socketId: string
-  cards: Card[]
   points: number
+}
+
+export interface User extends UserInRoom {
+  cards: Card[]
 }
 
 export interface Play {
