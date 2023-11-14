@@ -70,7 +70,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
       for (const user of users) {
         this.server.to(user.socketId).emit('cards', user.cards);
       }
-      this.server.to(slug).emit('gameStarted', slug); // broadcast messages gameStarted
+      this.server.to(slug).emit('gameStarted', true); // broadcast messages gameStarted
       return {gameIsStarted: await this.roomService.gameIsStarted(slug)};
     });
   }
@@ -82,7 +82,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
       for (const user of users) {
         this.server.to(user.socketId).emit('cards', user.cards);
       }
-      this.server.to(slug).emit('newRound', slug); // broadcast messages newRound
+      this.server.to(slug).emit('newRound', true); // broadcast messages newRound
       return {message: "Nouvelle manche bien lancée"};
     });
   }

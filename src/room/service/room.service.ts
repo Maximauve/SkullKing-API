@@ -78,7 +78,7 @@ export class RoomService {
   async addUserToRoom(slug: string, user: User) : Promise<void> {
     const room = await this.getRoom(slug);
     if (room) {
-      if (room.started == true) throw new HttpException("La partie à déjà commencé",  409);
+      if (room.started == true && !room.users.find((element: User) => element.userId == user.userId)) throw new HttpException("La partie à déjà commencé",  409);
       if (room.currentPlayers >= room.maxPlayers && !room.users.find(element => user.userId === element.userId)) throw new HttpException("La room est pleine",  409);
       if (room.host.userId == user.userId) {
         let host = room.users.find((element: User) => element.userId == user.userId)
