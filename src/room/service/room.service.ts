@@ -189,6 +189,11 @@ export class RoomService {
     return room.users;
   }
 
+  async gameIsStarted(slug: string): Promise<boolean> {
+    const room = await this.getRoom(slug);
+    return room.started;
+  }
+
   async usersWithoutCardsInRoom(slug: string): Promise<UserInRoom[]> {
     return await this.getRoomUsersInRoom(slug);
   }
