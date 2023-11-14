@@ -1,7 +1,7 @@
 import {Injectable} from "@nestjs/common";
 import FullCards from "../../script/cards";
 import {Card} from "../../script/Card";
-import {Bet, Play, PlayCard, Pli, Round, User} from "../../room/room.model";
+import {Bet, Play, PlayCard, Pli, RoomModel, Round, RoundModel, User} from "../../room/room.model";
 import {HttpException} from "@nestjs/common/exceptions";
 import {RedisService} from "../../redis/service/redis.service";
 import {RoomService} from "../../room/service/room.service";
@@ -44,23 +44,48 @@ export class GameService {
   }
 
   async bet(bet: Bet, user: User): Promise<void> {
-
+    let room = await this.roomService.getRoom(bet.slug);
+    let round = await this.roomService.getRound(bet.slug, room.currentRound);
+    if (round.users.find((elem: RoundModel) => elem.userId == user.userId)) throw new HttpException("Vous avez déjà parié", 409);
+    if (bet.wins > room.currentRound || bet.wins < 0) throw new HttpException("Vous ne pouvez pas parier plus que le nombre de manche", 409);
+    let total: number = room.users.find((elem: User) => elem.userId == user.userId)?.points;
+    round.users.push({userId: user.userId, wins: bet.wins, nbWins: null, points: null, bonus: null, total: total});
+    await this.redisService.hset(`room:${bet.slug}:${room.currentRound}`, ['users', JSON.stringify(round.users)]);
   }
 
-  async endRound(round: Round): Promise<User[]> {
-    const room = await this.roomService.getRoom(round.slug);
+  async endRound(slug: string): Promise<void> {
+    const room = await this.roomService.getRoom(slug);
+    const round = await this.roomService.getRound(slug, room.currentRound);
     const users = room.users.map((user: User) => {
       user.cards = [];
       return user;
     });
-    await this.redisService.hset(`room:${round.slug}`, ['users', JSON.stringify(users)]);
-    const roomKeys = await this.redisService.keys(`room:${round.slug}:${round.nbRound}:*`)
+    await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(users)]);
+    const roomKeys = await this.redisService.keys(`room:${slug}:${room.currentRound}:*`)
+    let winnersCount: {} = {};
     for (let room of roomKeys) {
-      let pli = await this.redisService.hgetall(room);
+      let pliData = await this.redisService.hgetall(room);
+      let winnerId: string = JSON.parse(pliData.winner)?.userId
+      let bonus: number = parseInt(pliData.bonus, 10)
+      if (!winnersCount[winnerId]) {
+        winnersCount[winnerId] = {
+          nbWins: 0,
+          bonus: 0,
+        };
+      }
+      winnersCount[winnerId].nbWins++;
+      winnersCount[winnerId].bonus += bonus;
     }
-    // end Round with good values
-    // {"userId":"id", "parier": 2, "nbGagné": null, "nbPointGagnés": "number", "bonus":"number","total":"number"}
-    return users;
+    for (const [index, user] of round.users.entries()) {
+      user.nbWins = winnersCount[user.userId] ? winnersCount[user.userId].nbWins : 0;
+      user.bonus = winnersCount[user.userId] ? winnersCount[user.userId].bonus : 0;
+      user.points = user.nbWins == user.wins ? user.nbWins * 20 + user.bonus : (user.wins - user.nbWins > 0 ? user.wins - user.nbWins : user.nbWins - user.wins) * -10 + user.bonus;
+      room.users.find((elem: User) => elem.userId == user.userId).points += user.points;
+      user.total = room.users.find((elem: User) => elem.userId == user.userId).points;
+      round.users[index] = user;
+    }
+    await this.redisService.hset(`room:${slug}:${room.currentRound}`, ['users', JSON.stringify(round.users)]);
+    await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(room.users)]);
   }
 
   async newPli(pli: Pli): Promise<[Play, number]> {

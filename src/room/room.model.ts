@@ -45,7 +45,17 @@ export interface Round {
   nbRound: number
 }
 
+export interface RoundModel {
+  userId: string
+  wins: number
+  nbWins: number
+  points: number
+  bonus: number
+  total: number
+}
+
 export interface Bet {
   slug: string
   wins: number
 }
+

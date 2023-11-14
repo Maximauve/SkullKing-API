@@ -41,6 +41,11 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
     console.log(`Disconnecting... socket id:`, socket.id);
   }
 
+  @SubscribeMessage('leaveRoom')
+  async leaveRoom(@ConnectedSocket() client: Socket, @MessageBody() slug: string) {
+    this.server.to(slug).emit('members', await this.roomService.usersWithoutCardsInRoom(slug));
+  }
+
   @SubscribeMessage('joinRoom')
   async joinRoom(@ConnectedSocket() client: Socket, @MessageBody() slug: string): Promise<{}> {
     return this.handleAction(slug, async () => {
@@ -92,11 +97,11 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
   }
 
   @SubscribeMessage('endRound')
-  async endRound(@ConnectedSocket() client: Socket, @MessageBody() round : Round): Promise<{}> {
-    return this.handleAction(round.slug, async () => {
-      let users = await this.gameService.endRound(round)
-      this.server.to(round.slug).emit('endRound', users); // broadcast messages endRound
-      this.server.to(round.slug).emit('member', await this.roomService.usersWithoutCardsInRoom(round.slug)); // broadcast messages endRound
+  async endRound(@ConnectedSocket() client: Socket, @MessageBody() slug : string): Promise<{}> {
+    return this.handleAction(slug, async () => {
+      await this.gameService.endRound(slug);
+      this.server.to(slug).emit('endRound', slug); // broadcast messages endRound
+      this.server.to(slug).emit('member', await this.roomService.usersWithoutCardsInRoom(slug)); // broadcast messages endRound
       return {message: "Fin de manche bien lancée"};
     });
   }
