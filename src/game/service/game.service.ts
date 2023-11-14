@@ -56,11 +56,10 @@ export class GameService {
   async endRound(slug: string): Promise<void> {
     const room = await this.roomService.getRoom(slug);
     const round = await this.roomService.getRound(slug, room.currentRound);
-    const users = room.users.map((user: User) => {
+    room.users = room.users.map((user: User) => {
       user.cards = [];
       return user;
     });
-    await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(users)]);
     const roomKeys = await this.redisService.keys(`room:${slug}:${room.currentRound}:*`)
     let winnersCount: {} = {};
     for (let room of roomKeys) {

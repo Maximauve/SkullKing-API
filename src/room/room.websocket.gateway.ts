@@ -71,7 +71,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
         this.server.to(user.socketId).emit('cards', user.cards);
       }
       this.server.to(slug).emit('gameStarted', slug); // broadcast messages gameStarted
-      return {message: "Partie bien lancée"};
+      return {gameIsStarted: await this.roomService.gameIsStarted(slug)};
     });
   }
 

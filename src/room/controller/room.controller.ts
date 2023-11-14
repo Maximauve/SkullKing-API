@@ -55,9 +55,4 @@ export class RoomController {
       throw new HttpException(e.message, e.status)
     }
   }
-
-  @Post("/test")
-  async test(@Body() body: any): Promise<[Play, any]> {
-    return await this.gameService.whoWinTheTrick(body);
-  }
 }
