@@ -1,6 +1,6 @@
 import {Injectable} from '@nestjs/common';
 import {RedisService} from "../../redis/service/redis.service";
-import {RoomModel, Round, RoundModel, User, UserInRoom} from "../room.model";
+import {RoomModel, Round, RoundModel, User, UserInRoom, UserWithHost} from "../room.model";
 import {PirateGlossaryService} from "../../pirate-glossary/service/pirate-glossary.service";
 import {HttpException} from "@nestjs/common/exceptions";
 
@@ -171,21 +171,17 @@ export class RoomService {
     } as { users: RoundModel[] };
   }
 
-  async getRoomUsersInRoom(slug: string): Promise<UserInRoom[]> {
-    const roomKey = `room:${slug}`;
-    if (await this.redisService.exists(roomKey) == 0) {
-      throw new HttpException(`La room ${slug} n'existe pas`,  404);
-    }
-    const roomData = await this.redisService.hgetall(roomKey);
-    const users = JSON.parse(roomData.users || '[]');
-    return users.map((user: User) => {
+  async getRoomUsersInRoom(slug: string): Promise<UserWithHost[]> {
+    const room = await this.getRoom(slug);
+    return room.users.map((user: User) => {
       return {
         userId: user.userId,
         username: user.username,
         socketId: user.socketId,
         points: user.points,
+        isHost: user.userId === room.host.userId,
       }
-    }) as UserInRoom[];
+    }) as UserWithHost[];
   }
 
   async usersInRoom(slug: string): Promise<User[]> {

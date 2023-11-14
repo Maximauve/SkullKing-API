@@ -22,6 +22,10 @@ export interface User extends UserInRoom {
   cards: Card[]
 }
 
+export interface UserWithHost extends UserInRoom {
+  isHost: boolean
+}
+
 export interface Play {
   card: Card
   user: User
