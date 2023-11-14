@@ -43,3 +43,8 @@ export interface Round {
   slug: string
   nbRound: number
 }
+
+export interface Bet {
+  userId: string // a voir si User ou ID
+  wins: number
+}

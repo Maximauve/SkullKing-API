@@ -12,7 +12,7 @@ import {HttpException} from "@nestjs/common/exceptions";
 import {RoomService} from "./service/room.service";
 import {Message} from "./dto/room.dto";
 import { jwtDecode } from "jwt-decode";
-import {Play, PlayCard, Pli, Round} from "./room.model";
+import {Bet, Play, PlayCard, Pli, Round} from "./room.model";
 import {GameService} from "../game/service/game.service";
 
 @WebSocketGateway({ cors : '*', namespace: 'room'})
@@ -36,6 +36,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
   }
 
   handleDisconnect(socket: Socket): void {
+    // gerer le cas si disconnect pendant une partie
     console.log(`Disconnecting... socket id:`, socket.id);
   }
 
@@ -95,7 +96,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
     return this.handleAction(pli.slug, async () => {
         let [winner, bonus] = await this.gameService.newPli(pli)
         this.server.to(pli.slug).emit('newPli', [winner, bonus]); // broadcast messages newPli
-        return {message: "Nouveau pli bien lancée"};
+        return {message: "Nouveau pli bien terminé"};
     });
   }
 

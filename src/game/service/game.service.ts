@@ -1,7 +1,7 @@
 import {Injectable} from "@nestjs/common";
 import FullCards from "../../script/cards";
 import {Card} from "../../script/Card";
-import {Play, PlayCard, Pli, Round, User} from "../../room/room.model";
+import {Bet, Play, PlayCard, Pli, Round, User} from "../../room/room.model";
 import {HttpException} from "@nestjs/common/exceptions";
 import {RedisService} from "../../redis/service/redis.service";
 import {RoomService} from "../../room/service/room.service";
@@ -43,13 +43,20 @@ export class GameService {
     return room.users;
   }
 
-  async endRound(round: Round): Promise<void> {
+  async endRound(round: Round): Promise<User[]> {
     const room = await this.roomService.getRoom(round.slug);
     const users = room.users.map((user: User) => {
       user.cards = [];
       return user;
     });
     await this.redisService.hset(`room:${round.slug}`, ['users', JSON.stringify(users)]);
+    const roomKeys = await this.redisService.keys(`room:${round.slug}:${round.nbRound}:*`)
+    for (let room of roomKeys) {
+      let pli = await this.redisService.hgetall(room);
+    }
+    // end Round with good values
+    // {"userId":"id", "parier": 2, "nbGagné": null, "nbPointGagnés": "number", "bonus":"number","total":"number"}
+    return users;
   }
 
   async newPli(pli: Pli): Promise<[Play, number]> {
