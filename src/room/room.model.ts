@@ -8,6 +8,7 @@ export interface RoomModel {
   currentPlayers: number;
   host: User;
   started: boolean;
+  currentRound: number;
 }
 
 export interface UserInRoom {
@@ -45,6 +46,6 @@ export interface Round {
 }
 
 export interface Bet {
-  userId: string // a voir si User ou ID
+  slug: string
   wins: number
 }

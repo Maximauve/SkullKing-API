@@ -22,6 +22,7 @@ export class RoomService {
       users: [host],
       host: host,
       started: false,
+      currentRound: 0,
     }
     let roomKey = `room:${room.slug}`;
     // check if key exists in redis to not overwrite
@@ -37,6 +38,7 @@ export class RoomService {
       'host', JSON.stringify(room.host),
       'slug', room.slug,
       'started', room.started.toString(),
+      'currentRound', '0',
     ]);
     this.rooms = [...this.rooms, room];
     return room;
@@ -66,6 +68,7 @@ export class RoomService {
           users: JSON.parse(roomData.users || '[]'),
           host: JSON.parse(roomData.host),
           started: roomData.started == 'true',
+          currentRound: parseInt(roomData.currentRound, 10),
         };
       }
     }
@@ -132,6 +135,7 @@ export class RoomService {
         users: JSON.parse(roomData.users || '[]'),
         host: JSON.parse(roomData.host),
         started: roomData.started == 'true',
+        currentRound: parseInt(roomData.currentRound, 10),
       };
       rooms.push(room);
     }
@@ -144,7 +148,7 @@ export class RoomService {
       throw new HttpException(`La room ${slug} n'existe pas`,  404);
     }
     const roomData = await this.redisService.hgetall(roomKey);
-    const room: RoomModel = {
+    return {
       slug: roomData.slug,
       maxPlayers: parseInt(roomData.maxPlayers, 10),
       currentPlayers: parseInt(roomData.currentPlayers, 10),
@@ -152,8 +156,8 @@ export class RoomService {
       users: JSON.parse(roomData.users || '[]'),
       host: JSON.parse(roomData.host),
       started: roomData.started == 'true',
-    };
-    return room;
+      currentRound: parseInt(roomData.currentRound, 10),
+    } as RoomModel;
   }
 
   async getRoomUsersInRoom(slug: string): Promise<UserInRoom[]> {

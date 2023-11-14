@@ -28,19 +28,23 @@ export class GameService {
     if (room.host.userId != user.userId) throw new HttpException("Vous n'êtes pas le créateur de la room", 403);
     if (room.currentPlayers < 2) throw new HttpException("Il n'y a pas assez de joueurs", 409);
     if (room.started == true) throw new HttpException("La partie à déjà commencé", 409);
-    room.users = await this.newRound({ slug: slug, nbCards: 1 });
+    room.users = await this.newRound(slug);
     await this.redisService.hset(`room:${slug}`, ['started', 'true']);
     return room.users;
   }
 
-  async newRound(body: { slug: string, nbCards: number }): Promise<User[]> {
-    const room = await this.roomService.getRoom(body.slug);
+  async newRound(slug: string): Promise<User[]> {
+    const room = await this.roomService.getRoom(slug);
     const fullCards: Card[] = await this.flushCards();
     for (const [index, user] of room.users.entries()) {
-      user.cards = fullCards.slice(body.nbCards * index, body.nbCards * (index+1));
+      user.cards = fullCards.slice((room.currentRound + 1) * index, (room.currentRound + 1) * (index+1));
     }
-    await this.redisService.hset(`room:${body.slug}`, ['users', JSON.stringify(room.users)]);
+    await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(room.users), 'currentRound', (room.currentRound + 1).toString()]);
     return room.users;
+  }
+
+  async bet(bet: Bet, user: User): Promise<void> {
+
   }
 
   async endRound(round: Round): Promise<User[]> {

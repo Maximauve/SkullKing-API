@@ -31,6 +31,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
       socketId: socketId,
       username: tokenData.username,
       userId: tokenData.id,
+      point: 0,
     };
     console.log(`New connecting... socket id:`, socketId);
   }
@@ -70,14 +71,23 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
   }
 
   @SubscribeMessage('newRound')
-  async newRound(@ConnectedSocket() client: Socket, @MessageBody() body : { slug: string, nbCards: number }): Promise<{}> {
-    return this.handleAction(body.slug, async () => {
-      let users = await this.gameService.newRound(body)
+  async newRound(@ConnectedSocket() client: Socket, @MessageBody() slug: string): Promise<{}> {
+    return this.handleAction(slug, async () => {
+      let users = await this.gameService.newRound(slug)
       for (const user of users) {
         this.server.to(user.socketId).emit('cards', user.cards);
       }
-      this.server.to(body.slug).emit('newRound', body.slug); // broadcast messages newRound
+      this.server.to(slug).emit('newRound', slug); // broadcast messages newRound
       return {message: "Nouvelle manche bien lancée"};
+    });
+  }
+
+  @SubscribeMessage('bet')
+  async bet(@ConnectedSocket() client: Socket, @MessageBody() bet: Bet): Promise<{}> {
+    return this.handleAction(bet.slug, async () => {
+      let users = await this.gameService.bet(bet, client.data.user)
+      this.server.to(bet.slug).emit('bet', users); // broadcast messages bet
+      return {message: "Mise bien lancée"};
     });
   }
 
