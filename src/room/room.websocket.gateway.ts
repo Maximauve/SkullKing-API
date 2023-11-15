@@ -90,9 +90,13 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
   @SubscribeMessage('bet')
   async bet(@ConnectedSocket() client: Socket, @MessageBody() bet: Bet): Promise<{}> {
     return this.handleAction(bet.slug, async () => {
-      let users = await this.gameService.bet(bet, client.data.user)
-      this.server.to(bet.slug).emit('bet', users); // broadcast messages bet
-      return {message: "Mise bien lancée"};
+      let [oldBet , user, endRound] = await this.gameService.bet(bet, client.data.user)
+      this.server.to(bet.slug).emit('bet', [user, oldBet]); // broadcast messages bet
+      if (endRound) {
+        await this.gameService.endRound(bet.slug);
+        this.server.to(bet.slug).emit('endRound', bet.slug); // broadcast messages endRound
+        this.server.to(bet.slug).emit('member', await this.roomService.usersWithoutCardsInRoom(bet.slug)); // broadcast messages endRound
+      }
     });
   }
 

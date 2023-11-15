@@ -76,29 +76,24 @@ export class RoomService {
   }
 
   async addUserToRoom(slug: string, user: User) : Promise<void> {
-    try {
-      const room = await this.getRoom(slug);
-      if (room) {
-        if (room.started == true && !room.users.find((element: User) => user.userId == element.userId)) throw new HttpException("La partie à déjà commencé",  409);
-        if (room.currentPlayers >= room.maxPlayers && !room.users.find((element: User) => user.userId === element.userId)) throw new HttpException("La room est pleine",  409);
-        if (room.host.userId == user.userId) {
-          let host = room.users.find((element: User) => element.userId == user.userId)
-          if (!host) room.users.push(user)
-          else host.socketId = user.socketId
-          await this.redisService.hset(`room:${slug}`, ['host', JSON.stringify(user), 'users', JSON.stringify(room.users)]);
-        } else if (room.users.find((element: User) => element.userId == user.userId)) {
-          room.users.find((element: User) => element.userId == user.userId).socketId = user.socketId;
-          await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(room.users)]);
-        } else {
-          await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify([...room.users, user]), 'currentPlayers', (room.currentPlayers + 1).toString()]);
-        }
+    const room = await this.getRoom(slug);
+    if (room) {
+      if (room.started == true && !room.users.find((element: User) => user.userId == element.userId)) throw new HttpException("La partie à déjà commencé",  409);
+      if (room.currentPlayers >= room.maxPlayers && !room.users.find((element: User) => user.userId === element.userId)) throw new HttpException("La room est pleine",  409);
+      if (room.host.userId == user.userId) {
+        let host = room.users.find((element: User) => element.userId == user.userId)
+        if (!host) room.users.push(user)
+        else host.socketId = user.socketId
+        await this.redisService.hset(`room:${slug}`, ['host', JSON.stringify(user), 'users', JSON.stringify(room.users)]);
+      } else if (room.users.find((element: User) => element.userId == user.userId)) {
+        room.users.find((element: User) => element.userId == user.userId).socketId = user.socketId;
+        await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(room.users)]);
       } else {
-        throw new HttpException("La room n'existe pas",  404);
+        await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify([...room.users, user]), 'currentPlayers', (room.currentPlayers + 1).toString()]);
       }
-    } catch (e) {
-      return Promise.reject(e)
+    } else {
+      throw new HttpException("La room n'existe pas",  404);
     }
-
   }
 
   async findRoomsByUserSocketId(socketId: string): Promise<RoomModel[]> {

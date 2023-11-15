@@ -43,7 +43,7 @@ export class GameService {
     return room.users;
   }
 
-  async bet(bet: Bet, user: User): Promise<void> {
+  async bet(bet: Bet, user: User): Promise<[Bet, User, boolean]> {
     let room = await this.roomService.getRoom(bet.slug);
     let round = await this.roomService.getRound(bet.slug, room.currentRound);
     if (round.users.find((elem: RoundModel) => elem.userId == user.userId)) throw new HttpException("Vous avez déjà parié", 409);
@@ -51,6 +51,10 @@ export class GameService {
     let total: number = room.users.find((elem: User) => elem.userId == user.userId)?.points;
     round.users.push({userId: user.userId, wins: bet.wins, nbWins: null, points: null, bonus: null, total: total});
     await this.redisService.hset(`room:${bet.slug}:${room.currentRound}`, ['users', JSON.stringify(round.users)]);
+    if (round.users.length == room.users.length) {
+      return [bet, user, true]
+    }
+    return [bet, user, false]
   }
 
   async endRound(slug: string): Promise<void> {
