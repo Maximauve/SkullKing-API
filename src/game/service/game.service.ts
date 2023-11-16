@@ -100,9 +100,9 @@ export class GameService {
   }
 
   async whoWinTheTrick(plays: Play[]): Promise<[Play, number]> {
-    let bonus = 0;
+    let bonus: number = 0;
     let winner: Play = plays[0];
-    let color = "";
+    let color: string = "";
     if (['mermaid', 'pirate', 'skull-king'].every(item => plays.map(play => play.card.type.slug).includes(item))) {
       // si il y a une sirène, un pirate et le skull king, la sirene l'emporte
       winner = plays.find(play => play.card.type.slug == 'mermaid');
@@ -160,6 +160,10 @@ export class GameService {
     const room = await this.roomService.getRoom(pliData.slug);
     const pli = await this.roomService.getPli(pliData);
     return pli.plays.length == room.users.length;
+  }
+
+  async checkEndRound(slug: string, nbRound: number): Promise<boolean> {
+    return await this.redisService.exists(`room:${slug}:${nbRound}:${nbRound}`) != 0;
   }
 }
 
