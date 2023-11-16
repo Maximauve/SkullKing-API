@@ -18,9 +18,6 @@ export class User {
   @Column({ type: 'varchar', default: Role.Player })
   role: Role;
 
-  @Column({ type: 'varchar', nullable: true })
-  imgPath: string;
-
   @CreateDateColumn()
   creation_date: Date;
 }   
