@@ -149,12 +149,15 @@ export class GameService {
       users[userIndex + 1].hasToPlay = true;
       users[userIndex].hasToPlay = false;
     }
+    console.log('[playCard] users : ', users);
     await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(users)]);
     let newUser: UserInRoom = await this.userWithoutCards(user);
     return [card, newUser];
   }
 
   cardInDeck(card: Card, deck: Card[]): boolean {
+    console.log('[cardInDeck] card ', card);
+    console.log('[cardInDeck] deck ', deck);
     return !!deck.find((elem: Card) => {
       if (elem.type == card.type) {
         if (elem.value && card.value) {

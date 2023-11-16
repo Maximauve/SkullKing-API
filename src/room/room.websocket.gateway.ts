@@ -124,14 +124,15 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
   }
 
   @SubscribeMessage('play')
-  async play(@ConnectedSocket() client: Socket, card: Card): Promise<{}> {
+  async play(@ConnectedSocket() client: Socket, @MessageBody() card: Card): Promise<{}> {
     return this.handleAction(client.data.slug, async () => {
+      console.log('[play] card : ', card);
       let [play, user] = await this.gameService.playCard(card, client.data.user, client.data.slug)
       let newPlayCard: CardPlayed = {
         card: play,
         userId: user.userId
       }
-      this.server.to(client.data.slug).emit('cardplay', newPlayCard); // broadcast messages playcard
+      this.server.to(client.data.slug).emit('cardPlayed', newPlayCard); // broadcast messages playcard
       if (await this.gameService.checkEndPli(client.data.slug) && await this.gameService.checkEndRound(client.data.slug)) {
         await this.gameService.endRound(client.data.slug);
         this.server.to(client.data.slug).emit('endRound', client.data.slug); // broadcast messages endRound
