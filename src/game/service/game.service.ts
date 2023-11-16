@@ -160,7 +160,7 @@ export class GameService {
     console.log('[cardInDeck] card ', card);
     console.log('[cardInDeck] deck ', deck);
     return !!deck.find((elem: Card) => {
-      if (elem.type == card.type) {
+      if (elem.type.slug === card.type.slug) {
         if (elem.value && card.value) {
           return elem.value == card.value;
         } else {
@@ -172,7 +172,7 @@ export class GameService {
 
   removeCardOnDeck(card: Card, deck: Card[]): Card[] {
     return deck.filter((elem: Card) => {
-      if (elem.type == card.type) {
+      if (elem.type.slug === card.type.slug) {
         if (elem.value && card.value) {
           return elem.value != card.value;
         } else {
