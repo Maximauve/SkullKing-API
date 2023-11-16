@@ -162,7 +162,11 @@ export class RoomService {
     } as RoomModel;
   }
 
-  async getRound(slug: string, nbRound: number): Promise<{ users: RoundModel[], currentPli: number }> {
+  async getRound(slug: string, nbRound: number | null): Promise<{ users: RoundModel[], currentPli: number }> {
+    if (nbRound == null) {
+      const room = await this.getRoom(slug);
+      nbRound = room.currentRound
+    }
     const roomKey = `room:${slug}:${nbRound}`;
     if (await this.redisService.exists(roomKey) == 0) {
       throw new Error(`Le round ${roomKey} n'existe pas`);

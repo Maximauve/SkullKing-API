@@ -57,14 +57,14 @@ export class GameService {
     return [bet, user, false]
   }
 
-  async endRound(slug: string): Promise<void> {
+  async endRound(slug: string, nbRound: number = null): Promise<void> {
     const room = await this.roomService.getRoom(slug);
-    const round = await this.roomService.getRound(slug, room.currentRound);
+    const round = await this.roomService.getRound(slug, nbRound);
     room.users = room.users.map((user: User) => {
       user.cards = [];
       return user;
     });
-    const roomKeys = await this.redisService.keys(`room:${slug}:${room.currentRound}:*`)
+    const roomKeys = await this.redisService.keys(`room:${slug}:${nbRound}:*`)
     let winnersCount: {} = {};
     for (let room of roomKeys) {
       let pliData = await this.redisService.hgetall(room);
@@ -125,7 +125,7 @@ export class GameService {
     return [winner, bonus];
   }
 
-  async playCard(card: Card, user: User, slug: string): Promise<[Card, UserInRoom]> {
+  async playCard(card: Card, user: User, slug: string): Promise<[Card, UserInRoom, number]> {
     let room: RoomModel = await this.roomService.getRoom(slug);
     let round = await this.roomService.getRound(slug, room.currentRound);
     let users: User[] = room.users;
@@ -142,6 +142,7 @@ export class GameService {
       user: user,
     }
     await this.redisService.hset(`room:${slug}:${room.currentRound}:${round.currentPli}`, ['plays', JSON.stringify([...plays, play])]);
+    users[userIndex].cards = this.removeCardOnDeck(card, users[userIndex].cards);
     if (userIndex == users.length - 1) {
       users[0].hasToPlay = true;
       users[userIndex].hasToPlay = false;
@@ -152,7 +153,7 @@ export class GameService {
     console.log('[playCard] users : ', users);
     await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(users)]);
     let newUser: UserInRoom = await this.userWithoutCards(user);
-    return [card, newUser];
+    return [card, newUser, room.currentRound];
   }
 
   cardInDeck(card: Card, deck: Card[]): boolean {
@@ -165,6 +166,20 @@ export class GameService {
         } else {
           return true;
         }
+      }
+    });
+  }
+
+  removeCardOnDeck(card: Card, deck: Card[]): Card[] {
+    return deck.filter((elem: Card) => {
+      if (elem.type == card.type) {
+        if (elem.value && card.value) {
+          return elem.value != card.value;
+        } else {
+          return false;
+        }
+      } else {
+        return true;
       }
     });
   }
@@ -190,6 +205,10 @@ export class GameService {
     let room = await this.roomService.getRoom(slug);
     let round = await this.roomService.getRound(slug, room.currentRound);
     return await this.redisService.exists(`room:${slug}:${room.currentRound}:${round.currentPli}`) != 0;
+  }
+
+  async getDeck(slug: string, user: User): Promise<Card[]> {
+    return (await this.roomService.getRoom(slug)).users.find((elem: User) => elem.userId == user.userId).cards;
   }
 }
 

@@ -126,21 +126,23 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
   @SubscribeMessage('play')
   async play(@ConnectedSocket() client: Socket, @MessageBody() card: Card): Promise<{}> {
     return this.handleAction(client.data.slug, async () => {
-      console.log('[play] card : ', card);
-      let [play, user] = await this.gameService.playCard(card, client.data.user, client.data.slug)
+      let [play, user, round] = await this.gameService.playCard(card, client.data.user, client.data.slug)
       let newPlayCard: CardPlayed = {
         card: play,
         userId: user.userId
       }
       this.server.to(client.data.slug).emit('cardPlayed', newPlayCard); // broadcast messages playcard
+      this.server.to(client.data.user.socketId).emit('cards', await this.gameService.getDeck(client.data.slug, client.data.user)); // broadcast messages playcard
+      console.log("API Carte joué -> ", play);
+      if (await this.gameService.checkEndPli(client.data.slug)) {
+        let [winner, bonus] = await this.gameService.newPli(client.data.slug);
+        this.server.to(client.data.slug).emit('newPli', [winner, bonus]); // broadcast messages newPli
+      }
       if (await this.gameService.checkEndPli(client.data.slug) && await this.gameService.checkEndRound(client.data.slug)) {
-        await this.gameService.endRound(client.data.slug);
+        await this.gameService.endRound(client.data.slug, round);
         this.server.to(client.data.slug).emit('endRound', client.data.slug); // broadcast messages endRound
         this.server.to(client.data.slug).emit('member', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
         return {message: "Fin de manche bien lancée"};
-      } else if (await this.gameService.checkEndPli(client.data.slug)) {
-        let [winner, bonus] = await this.gameService.newPli(client.data.slug);
-        this.server.to(client.data.slug).emit('newPli', [winner, bonus]); // broadcast messages newPli
       }
     });
   }
