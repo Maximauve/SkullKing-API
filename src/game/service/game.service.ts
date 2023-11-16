@@ -134,7 +134,7 @@ export class GameService {
     if (!users[userIndex].hasToPlay) throw new Error("Ce n'est pas à vous de jouer");
     let pli = await this.roomService.getPli(slug, room.currentRound, round.currentPli);
     let plays: Play[] = pli.plays
-    if (card.id != room.users.find((elem: User) => elem.userId == user.userId)?.cards.find((elem: Card) => elem.id == card.id).id) {
+    if (this.cardInDeck(card, users[userIndex].cards)) {
       throw new Error("Vous n'avez pas cette carte");
     }
     let play: Play = {
@@ -152,6 +152,18 @@ export class GameService {
     await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(users)]);
     let newUser: UserInRoom = await this.userWithoutCards(user);
     return [card, newUser];
+  }
+
+  cardInDeck(card: Card, deck: Card[]): boolean {
+    return !!deck.find((elem: Card) => {
+      if (elem.type == card.type) {
+        if (elem.value && card.value) {
+          return elem.value == card.value;
+        } else {
+          return true;
+        }
+      }
+    });
   }
 
   async userWithoutCards(user: User): Promise<UserInRoom> {
