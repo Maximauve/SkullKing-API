@@ -39,7 +39,7 @@ export class GameService {
       user.cards = fullCards.slice((room.currentRound + 1) * index, (room.currentRound + 1) * (index+1));
     }
     await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(room.users), 'currentRound', (room.currentRound + 1).toString()]);
-    await this.redisService.hset(`room:${slug}:${room.currentRound}`, ['currentPli', '1']);
+    await this.redisService.hset(`room:${slug}:${room.currentRound + 1}`, ['currentPli', '1']);
     return room.users;
   }
 
