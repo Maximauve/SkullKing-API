@@ -201,6 +201,7 @@ export class RoomService {
         socketId: user.socketId,
         points: user.points,
         isHost: user.userId === room.host.userId,
+        hasToPlay: user.hasToPlay
       }
     }) as UserWithHost[];
   }
