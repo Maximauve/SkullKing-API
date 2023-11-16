@@ -85,15 +85,17 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
     return this.handleAction(client.data.slug, async () => {
       let [user, everyoneHaveBet, round] = await this.gameService.bet(bet, client.data.user, client.data.slug)
       this.server.to(client.data.slug).emit('bet', [user, bet]); // broadcast messages bet
-      if (everyoneHaveBet && round != 1) {
-        let [users, newRound] = await this.gameService.newRound(client.data.slug)
-        round = newRound;
-        for (const user of users) {
-          this.server.to(user.socketId).emit('cards', user.cards);
+      if (everyoneHaveBet) {
+        if (round !== 1) {
+          let [users, newRound] = await this.gameService.newRound(client.data.slug)
+          round = newRound;
+          for (const user of users) {
+            this.server.to(user.socketId).emit('cards', user.cards);
+          }
         }
+        this.server.to(client.data.slug).emit('newRound', round); // broadcast messages newRound
+        this.server.to(client.data.slug).emit('members', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
       }
-      this.server.to(client.data.slug).emit('newRound', round); // broadcast messages newRound
-      this.server.to(client.data.slug).emit('members', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
     });
   }
 
