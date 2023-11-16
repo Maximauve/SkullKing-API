@@ -15,6 +15,8 @@ export class RoomService {
 
   async createRoom(maxPlayers: number, host: User, password?: string): Promise<RoomModel> {
     host.cards = [];
+    host.hasToPlay = true;
+    host.points = 0;
     const room: RoomModel = {
       slug: await this.pirateGlossaryService.GetThreeWord(),
       maxPlayers: maxPlayers,
