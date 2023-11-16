@@ -19,7 +19,7 @@ export class PirateGlossaryController {
   @Get("/")
   async GetThreeWord(): Promise<{}> {
     let words = await this.pirateGlossaryService.GetThreeWord();
-    return { "room" : words };
+    return {"room": words};
   }
 
   @UseGuards(JwtAuthGuard)

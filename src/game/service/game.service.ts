@@ -10,7 +10,8 @@ export class GameService {
   constructor(
     private redisService: RedisService,
     private roomService: RoomService,
-  ) {}
+  ) {
+  }
 
   async getCards(): Promise<{}> {
     return FullCards;
@@ -27,20 +28,20 @@ export class GameService {
     if (room.host.userId != user.userId) throw new Error("Vous n'êtes pas le créateur de la room");
     if (room.currentPlayers < 2) throw new Error("Il n'y a pas assez de joueurs");
     if (room.started == true) throw new Error("La partie à déjà commencé");
-    room.users = await this.newRound(slug);
+    [room.users,] = await this.newRound(slug);
     await this.redisService.hset(`room:${slug}`, ['started', 'true']);
     return room.users;
   }
 
-  async newRound(slug: string): Promise<User[]> {
+  async newRound(slug: string): Promise<[User[], number]> {
     const room = await this.roomService.getRoom(slug);
     const fullCards: Card[] = await this.flushCards();
     for (const [index, user] of room.users.entries()) {
-      user.cards = fullCards.slice((room.currentRound + 1) * index, (room.currentRound + 1) * (index+1));
+      user.cards = fullCards.slice((room.currentRound + 1) * index, (room.currentRound + 1) * (index + 1));
     }
     await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(room.users), 'currentRound', (room.currentRound + 1).toString()]);
     await this.redisService.hset(`room:${slug}:${room.currentRound + 1}`, ['currentPli', '1']);
-    return room.users;
+    return [room.users, room.currentRound];
   }
 
   async bet(bet: number, user: User, slug: string): Promise<[number, User, boolean]> {
@@ -215,7 +216,7 @@ export class GameService {
 
 const WinPlay = (play1: Play, play2: Play, color: string, bonus: number): [string, Play, number] => {
   let winner = play1;
-  if (color === "" && ['yellow','green','purple'].includes(play1.card.type.slug)) {
+  if (color === "" && ['yellow', 'green', 'purple'].includes(play1.card.type.slug)) {
     color = play1.card.type.slug;
   }
   bonus += checkBonus(play2);

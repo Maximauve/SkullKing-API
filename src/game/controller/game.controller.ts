@@ -6,8 +6,8 @@ import {UseGuards} from "@nestjs/common/decorators";
 @UseGuards(JwtAuthGuard)
 @Controller('game')
 export class GameController {
-  constructor(private readonly gameService: GameService) {}
-
+  constructor(private readonly gameService: GameService) {
+  }
 
   @Get('cards')
   async getCards(): Promise<{}> {

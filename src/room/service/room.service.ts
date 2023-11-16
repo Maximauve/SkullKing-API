@@ -6,12 +6,13 @@ import {HttpException} from "@nestjs/common/exceptions";
 
 @Injectable()
 export class RoomService {
-  private rooms : RoomModel[] = [];
+  private rooms: RoomModel[] = [];
 
-  constructor (
+  constructor(
     private redisService: RedisService,
     private pirateGlossaryService: PirateGlossaryService
-  ) {}
+  ) {
+  }
 
   async createRoom(maxPlayers: number, host: User, password?: string): Promise<RoomModel> {
     host.cards = [];
@@ -50,7 +51,7 @@ export class RoomService {
   async closeRoom(slug: string): Promise<{}> {
     const roomKey: string = `room:${slug}`;
     if (await this.redisService.exists(roomKey) == 0) {
-      throw new HttpException("La room n'existe pas",  404);
+      throw new HttpException("La room n'existe pas", 404);
     }
     await this.redisService.del(roomKey);
     return {
@@ -78,7 +79,7 @@ export class RoomService {
     return null;
   }
 
-  async addUserToRoom(slug: string, user: User) : Promise<void> {
+  async addUserToRoom(slug: string, user: User): Promise<void> {
     const room: RoomModel = await this.getRoom(slug);
     if (room) {
       if (room.started == true && !room.users.find((element: User) => user.userId == element.userId)) throw new Error("La partie à déjà commencé");

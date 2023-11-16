@@ -1,4 +1,4 @@
-import { Redis } from 'ioredis';
+import {Redis} from 'ioredis';
 import {Injectable} from "@nestjs/common";
 
 @Injectable()
@@ -7,18 +7,18 @@ export class RedisService {
 
   constructor() {
     this.redisClient = new Redis(
-        process.env.REDISCLOUD_URL
-        /*{
-      port: 16655,
+      process.env.REDISCLOUD_URL
+      /*{
+    port: 16655,
+    host: process.env.REDIS_HOST,
+    username: process.env.REDIS_USERNAME,
+    password: process.env.REDIS_PASSWORD,
+    db: 0,
+    tls: {
       host: process.env.REDIS_HOST,
-      username: process.env.REDIS_USERNAME,
-      password: process.env.REDIS_PASSWORD,
-      db: 0,
-      tls: {
-        host: process.env.REDIS_HOST,
-        rejectUnauthorized: false,
-      },
-    }*/);
+      rejectUnauthorized: false,
+    },
+  }*/);
   }
 
   async set(key: string, value: string): Promise<void> {
@@ -38,7 +38,7 @@ export class RedisService {
     return this.redisClient.hget(key, field);
   }
 
-  async hgetall(key: string): Promise<{[key: string]: string}> {
+  async hgetall(key: string): Promise<{ [key: string]: string }> {
     return this.redisClient.hgetall(key);
   }
 

@@ -3,16 +3,15 @@ import {InjectRepository} from '@nestjs/typeorm';
 import {Repository} from 'typeorm';
 import {PirateGlossary} from "../pirate-glossary.entity";
 import {PirateGlossaryDto} from "../dto/pirate-glossary.dto";
-import {PirateGlossaryController} from "../controller/pirate-glossary.controller";
 import {HttpException} from "@nestjs/common/exceptions";
-import {Card} from "../../cards/cards.entity";
 
 @Injectable()
 export class PirateGlossaryService {
   constructor(
     @InjectRepository(PirateGlossary)
     private pirateGlossaryRepository: Repository<PirateGlossary>,
-  ) {}
+  ) {
+  }
 
   async GetThreeWord(): Promise<string> {
     const allWords = await this.pirateGlossaryRepository.find();
@@ -42,9 +41,9 @@ export class PirateGlossaryService {
       .createQueryBuilder()
       .delete()
       .from(PirateGlossary)
-      .where("id= :id", { id: id })
+      .where("id= :id", {id: id})
       .execute();
-    if (query.affected == 0) throw new HttpException("Le mot n'a pas été trouvé",  404);
+    if (query.affected == 0) throw new HttpException("Le mot n'a pas été trouvé", 404);
     return {};
   }
 }

@@ -10,8 +10,8 @@ import {GameService} from "../../game/service/game.service";
 
 @Controller('room')
 export class RoomController {
-  constructor(private readonly roomService: RoomService,
-              private readonly gameService: GameService) {}
+  constructor(private readonly roomService: RoomService) {
+  }
 
   @UseGuards(JwtAuthGuard)
   @UsePipes(ValidationPipe)

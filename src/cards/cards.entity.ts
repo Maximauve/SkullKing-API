@@ -6,10 +6,10 @@ export class Card {
   @PrimaryGeneratedColumn()
   id: string;
 
-  @Column({ type: 'integer', nullable: false })
+  @Column({type: 'integer', nullable: false})
   value: number;
 
-  @Column({ type: 'varchar' })
+  @Column({type: 'varchar'})
   img_path: string;
 
   @ManyToOne(() => CardType, cardType => cardType.cards)

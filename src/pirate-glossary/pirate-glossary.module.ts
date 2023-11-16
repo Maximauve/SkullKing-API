@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import {Module} from '@nestjs/common';
+import {TypeOrmModule} from '@nestjs/typeorm';
 import {PirateGlossary} from "./pirate-glossary.entity";
 import {PirateGlossaryController} from "./controller/pirate-glossary.controller";
 import {PirateGlossaryService} from "./service/pirate-glossary.service";
@@ -10,4 +10,5 @@ import {PirateGlossaryService} from "./service/pirate-glossary.service";
   providers: [PirateGlossaryService],
   exports: [PirateGlossaryService],
 })
-export class PirateGlossaryModule {}
+export class PirateGlossaryModule {
+}
