@@ -121,6 +121,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
       }
       this.server.to(client.data.slug).emit('cardPlayed', newPlayCard); // broadcast messages playcard
       this.server.to(client.data.user.socketId).emit('cards', await this.gameService.getDeck(client.data.slug, client.data.user)); // broadcast messages playcard
+      this.server.to(client.data.slug).emit('members', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
       console.log("API Carte joué -> ", play);
       if (await this.gameService.checkEndPli(client.data.slug)) {
         let [winner, bonus] = await this.gameService.newPli(client.data.slug);
