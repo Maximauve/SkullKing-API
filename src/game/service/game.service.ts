@@ -52,6 +52,7 @@ export class GameService {
     let total: number = room.users.find((elem: User) => elem.userId == user.userId)?.points;
     round.users.push({userId: user.userId, wins: bet, nbWins: null, points: null, bonus: null, total: total});
     await this.redisService.hset(`room:${slug}:${room.currentRound}`, ['users', JSON.stringify(round.users)]);
+    delete user.cards;
     if (round.users.length == room.users.length) {
       return [bet, user, true]
     }
