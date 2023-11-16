@@ -16,6 +16,7 @@ export interface UserInRoom {
   username: string
   socketId: string
   points: number
+  hasToPlay: boolean
 }
 
 export interface User extends UserInRoom {
@@ -35,10 +36,10 @@ export interface PlayCard extends Play {
   slug: string
   nbRound: number
   nbPli: number
+  card: Card
 }
 
 export interface Pli {
-  plays: Play[]
   slug: string
   nbRound: number
   nbPli: number

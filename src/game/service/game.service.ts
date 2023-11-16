@@ -1,8 +1,7 @@
 import {Injectable} from "@nestjs/common";
 import FullCards from "../../script/cards";
 import {Card} from "../../script/Card";
-import {Bet, Play, PlayCard, Pli, RoomModel, Round, RoundModel, User} from "../../room/room.model";
-import {HttpException} from "@nestjs/common/exceptions";
+import {Bet, Play, PlayCard, Pli, RoomModel, RoundModel, User, UserInRoom} from "../../room/room.model";
 import {RedisService} from "../../redis/service/redis.service";
 import {RoomService} from "../../room/service/room.service";
 
@@ -25,9 +24,9 @@ export class GameService {
 
   async startGame(slug: string, user: User): Promise<User[]> {
     const room = await this.roomService.getRoom(slug);
-    if (room.host.userId != user.userId) throw new HttpException("Vous n'êtes pas le créateur de la room", 403);
-    if (room.currentPlayers < 2) throw new HttpException("Il n'y a pas assez de joueurs", 409);
-    if (room.started == true) throw new HttpException("La partie à déjà commencé", 409);
+    if (room.host.userId != user.userId) throw new Error("Vous n'êtes pas le créateur de la room");
+    if (room.currentPlayers < 2) throw new Error("Il n'y a pas assez de joueurs");
+    if (room.started == true) throw new Error("La partie à déjà commencé");
     room.users = await this.newRound(slug);
     await this.redisService.hset(`room:${slug}`, ['started', 'true']);
     return room.users;
@@ -42,12 +41,13 @@ export class GameService {
     await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(room.users), 'currentRound', (room.currentRound + 1).toString()]);
     return room.users;
   }
+  // hasToPlayed : boolean
 
   async bet(bet: Bet, user: User): Promise<[Bet, User, boolean]> {
-    let room = await this.roomService.getRoom(bet.slug);
+    let room: RoomModel = await this.roomService.getRoom(bet.slug);
     let round = await this.roomService.getRound(bet.slug, room.currentRound);
-    if (round.users.find((elem: RoundModel) => elem.userId == user.userId)) throw new HttpException("Vous avez déjà parié", 409);
-    if (bet.wins > room.currentRound || bet.wins < 0) throw new HttpException("Vous ne pouvez pas parier plus que le nombre de manche", 409);
+    if (round.users.find((elem: RoundModel) => elem.userId == user.userId)) throw new Error("Vous avez déjà parié");
+    if (bet.wins > room.currentRound || bet.wins < 0) throw new Error("Vous ne pouvez pas parier plus que le nombre de manche");
     let total: number = room.users.find((elem: User) => elem.userId == user.userId)?.points;
     round.users.push({userId: user.userId, wins: bet.wins, nbWins: null, points: null, bonus: null, total: total});
     await this.redisService.hset(`room:${bet.slug}:${room.currentRound}`, ['users', JSON.stringify(round.users)]);
@@ -92,7 +92,10 @@ export class GameService {
   }
 
   async newPli(pli: Pli): Promise<[Play, number]> {
-    const [winner, bonus] = await this.whoWinTheTrick(pli.plays);
+    const room: RoomModel = await this.roomService.getRoom(pli.slug);
+    const pliData = await this.roomService.getPli(pli);
+    if (room.users.length !== pliData.plays.length) throw new Error("Tous les joueurs n'ont pas joué");
+    const [winner, bonus] = await this.whoWinTheTrick(pliData.plays);
     await this.redisService.hset(`room:${pli.slug}:${pli.nbRound}:${pli.nbPli}`, ['winner', JSON.stringify(winner.user), 'bonus', bonus.toString()]);
     return [winner, bonus];
   }
@@ -120,15 +123,44 @@ export class GameService {
     return [winner, bonus];
   }
 
-  async playCard(playcard: PlayCard): Promise<PlayCard> {
-    let room = await this.roomService.getRoom(playcard.slug);
+  async playCard(playcard: PlayCard, user: User): Promise<[PlayCard, UserInRoom]> {
+    let room: RoomModel = await this.roomService.getRoom(playcard.slug);
+    let users: User[] = room.users;
+    let userIndex: number = users.findIndex((elem: User) => elem.userId == user.userId);
+    if (!userIndex) throw new Error("Vous n'êtes pas dans la room");
+    if (!users[userIndex].hasToPlay) throw new Error("Ce n'est pas à vous de jouer");
     let pli = await this.redisService.hgetall(`room:${playcard.slug}:${playcard.nbRound}:${playcard.nbPli}`)
     let plays = JSON.parse(pli.plays);
     if (playcard.card.id != room.users.find((user: User) => user.userId == playcard.user.userId)?.cards.find((card: Card) => card.id == playcard.card.id).id) {
-      throw new HttpException("Vous n'avez pas cette carte", 409);
+      throw new Error("Vous n'avez pas cette carte");
     }
     await this.redisService.hset(`room:${playcard.slug}:${playcard.nbRound}:${playcard.nbPli}`, ['plays', JSON.stringify([...plays, playcard])]);
-    return playcard;
+    if (userIndex == users.length - 1) {
+      users[0].hasToPlay = true;
+      users[userIndex].hasToPlay = false;
+    } else {
+      users[userIndex + 1].hasToPlay = true;
+      users[userIndex].hasToPlay = false;
+    }
+    await this.redisService.hset(`room:${playcard.slug}`, ['users', JSON.stringify(users)]);
+    let newUser: UserInRoom = await this.userWithoutCards(user);
+    return [playcard, newUser];
+  }
+
+  async userWithoutCards(user: User): Promise<UserInRoom> {
+    return {
+      userId: user.userId,
+      username: user.username,
+      socketId: user.socketId,
+      points: user.points,
+      hasToPlay: user.hasToPlay,
+    }
+  }
+
+  async checkEndPli(pliData: Pli): Promise<boolean> {
+    const room = await this.roomService.getRoom(pliData.slug);
+    const pli = await this.roomService.getPli(pliData);
+    return pli.plays.length == room.users.length;
   }
 }
 
@@ -183,13 +215,3 @@ const checkBonus = (play1: Play, play2: Play = null): number => {
   return 0;
 }
 
-// ===> CHAQUE CARTE JOUER
-// Subcriber play
-// Get card + user
-// Check if user has the card
-// append card + user dans room:slug:nbManche:pli
-// emit carte joué
-
-// si room:slug:nbManche:pli.length == room.users.length
-//   whoWinTheTrick(room:slug:nbManche:pli)
-// <====

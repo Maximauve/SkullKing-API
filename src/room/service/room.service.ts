@@ -1,6 +1,6 @@
 import {Injectable} from '@nestjs/common';
 import {RedisService} from "../../redis/service/redis.service";
-import {RoomModel, Round, RoundModel, User, UserInRoom, UserWithHost} from "../room.model";
+import {Play, Pli, RoomModel, Round, RoundModel, User, UserInRoom, UserWithHost} from "../room.model";
 import {PirateGlossaryService} from "../../pirate-glossary/service/pirate-glossary.service";
 import {HttpException} from "@nestjs/common/exceptions";
 
@@ -14,6 +14,7 @@ export class RoomService {
   ) {}
 
   async createRoom(maxPlayers: number, host: User, password?: string): Promise<RoomModel> {
+    host.cards = [];
     const room: RoomModel = {
       slug: await this.pirateGlossaryService.GetThreeWord(),
       maxPlayers: maxPlayers,
@@ -45,7 +46,7 @@ export class RoomService {
   }
 
   async closeRoom(slug: string): Promise<{}> {
-    const roomKey = `room:${slug}`;
+    const roomKey: string = `room:${slug}`;
     if (await this.redisService.exists(roomKey) == 0) {
       throw new HttpException("La room n'existe pas",  404);
     }
@@ -56,7 +57,7 @@ export class RoomService {
   }
 
   async getRoomHost(hostname: string): Promise<RoomModel | null> {
-    const roomKeys = await this.redisService.keys('room:*');
+    const roomKeys: string[] = await this.redisService.keys('room:*');
     for (const roomKey of roomKeys) {
       const roomData = await this.redisService.hgetall(roomKey);
       if (JSON.parse(roomData.host).username == hostname) {
@@ -76,10 +77,10 @@ export class RoomService {
   }
 
   async addUserToRoom(slug: string, user: User) : Promise<void> {
-    const room = await this.getRoom(slug);
+    const room: RoomModel = await this.getRoom(slug);
     if (room) {
-      if (room.started == true && !room.users.find((element: User) => user.userId == element.userId)) throw new HttpException("La partie à déjà commencé",  409);
-      if (room.currentPlayers >= room.maxPlayers && !room.users.find((element: User) => user.userId === element.userId)) throw new HttpException("La room est pleine",  409);
+      if (room.started == true && !room.users.find((element: User) => user.userId == element.userId)) throw new Error("La partie à déjà commencé");
+      if (room.currentPlayers >= room.maxPlayers && !room.users.find((element: User) => user.userId === element.userId)) throw new Error("La room est pleine");
       if (room.host.userId == user.userId) {
         let host = room.users.find((element: User) => element.userId == user.userId)
         if (!host) room.users.push(user)
@@ -92,12 +93,12 @@ export class RoomService {
         await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify([...room.users, user]), 'currentPlayers', (room.currentPlayers + 1).toString()]);
       }
     } else {
-      throw new HttpException("La room n'existe pas",  404);
+      throw new Error(`La room ${slug} n'existe pas`);
     }
   }
 
   async findRoomsByUserSocketId(socketId: string): Promise<RoomModel[]> {
-    const roomKeys = await this.redisService.keys('room:*');
+    const roomKeys: string[] = await this.redisService.keys('room:*');
     const filteredRooms = [];
     for (const roomKey of roomKeys) {
       const room = await this.redisService.hgetall(roomKey);
@@ -110,20 +111,20 @@ export class RoomService {
   }
 
   async removeUserFromAllRooms(socketId: string): Promise<void> {
-    const rooms = await this.findRoomsByUserSocketId(socketId)
+    const rooms: RoomModel[] = await this.findRoomsByUserSocketId(socketId)
     for (const room of rooms) {
       await this.removeUserFromRoom(socketId, room.slug)
     }
   }
 
   async removeUserFromRoom(socketId: string, slug: string): Promise<void> {
-    const room = await this.getRoom(slug)
+    const room: RoomModel = await this.getRoom(slug)
     room.users = room.users.filter((user: User) => user.socketId !== socketId)
     await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(room.users), 'currentPlayers', (room.currentPlayers - 1).toString()]);
   }
 
   async getRooms(): Promise<RoomModel[]> {
-    const roomKeys = await this.redisService.keys('room:*');
+    const roomKeys: string[] = await this.redisService.keys('room:*');
     const rooms: RoomModel[] = [];
     for (const roomKey of roomKeys) {
       const roomData = await this.redisService.hgetall(roomKey);
@@ -143,9 +144,9 @@ export class RoomService {
   }
 
   async getRoom(slug: string): Promise<RoomModel> {
-    const roomKey = `room:${slug}`;
+    const roomKey: string = `room:${slug}`;
     if (await this.redisService.exists(roomKey) == 0) {
-      throw new HttpException(`La room ${slug} n'existe pas`,  404);
+      throw new Error(`La room ${slug} n'existe pas`);
     }
     const roomData = await this.redisService.hgetall(roomKey);
     return {
@@ -163,7 +164,7 @@ export class RoomService {
   async getRound(slug: string, nbRound: number): Promise<{ users: RoundModel[] }> {
     const roomKey = `room:${slug}:${nbRound}`;
     if (await this.redisService.exists(roomKey) == 0) {
-      throw new HttpException(`Le round ${roomKey} n'existe pas`,  404);
+      throw new Error(`Le round ${roomKey} n'existe pas`);
     }
     const roundData = await this.redisService.hgetall(roomKey);
     return {
@@ -171,8 +172,21 @@ export class RoomService {
     } as { users: RoundModel[] };
   }
 
+  async getPli(pli: Pli): Promise<{ plays: Play[] }> {
+    const roomKey = `room:${pli.slug}:${pli.nbRound}:${pli.nbPli}`;
+    if (await this.redisService.exists(roomKey) == 0) {
+      return {
+        plays: [],
+      } as { plays: Play[] };
+    }
+    const pliData = await this.redisService.hgetall(roomKey);
+    return {
+      plays: JSON.parse(pliData.plays || '[]'),
+    } as { plays: Play[] };
+  }
+
   async getRoomUsersInRoom(slug: string): Promise<UserWithHost[]> {
-    const room = await this.getRoom(slug);
+    const room: RoomModel = await this.getRoom(slug);
     return room.users.map((user: User) => {
       return {
         userId: user.userId,
@@ -185,12 +199,12 @@ export class RoomService {
   }
 
   async usersInRoom(slug: string): Promise<User[]> {
-    const room = await this.getRoom(slug);
+    const room: RoomModel = await this.getRoom(slug);
     return room.users;
   }
 
   async gameIsStarted(slug: string): Promise<boolean> {
-    const room = await this.getRoom(slug);
+    const room: RoomModel = await this.getRoom(slug);
     return room.started;
   }
 
@@ -199,28 +213,12 @@ export class RoomService {
   }
 
   async kickUser(slug: string, username: string): Promise<void> {
-    const room = await this.getRoom(slug);
-    const user = room.users.find((user: User) => user.username === username);
-    if (!user) throw new HttpException("L'utilisateur n'existe pas", 404);
+    const room: RoomModel = await this.getRoom(slug);
+    const user: User = room.users.find((user: User) => user.username === username);
+    if (!user) throw new HttpException(`L'utilisateur ${username} n'existe pas dans la room`, 404);
     await this.removeUserFromRoom(user.socketId, slug);
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // ===> ROOM
 
@@ -229,7 +227,7 @@ export class RoomService {
 // "password"
 // "started"
 // "maxPlayers"
-// "users" => [{"userId":"id", "username":"string", "socketId":"string", "cards":"Card[]", "points":"number"}, user, user]
+// "users" => [{"userId":"id", "username":"string", "socketId":"string", "cards":"Card[]", "points":"number", hasToPlay:false}, user, user]
 // "slug"
 
 

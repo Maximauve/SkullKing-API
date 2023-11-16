@@ -32,6 +32,8 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
       username: tokenData.username,
       userId: tokenData.id,
       point: 0,
+      hasToPlay: false,
+      cards: []
     };
     console.log(`New connecting... socket id:`, socketId);
   }
@@ -121,18 +123,31 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
 
   @SubscribeMessage('play')
   async play(@ConnectedSocket() client: Socket, @MessageBody() playcard : PlayCard): Promise<{}> {
-    return this.handleAction(playcard.slug, async (playcard) => {
-      let play = await this.gameService.playCard(playcard)
-      this.server.to(playcard.slug).emit('playcard', play); // broadcast messages playcard
+    return this.handleAction(playcard.slug, async (card: PlayCard) => {
+      let [play, user] = await this.gameService.playCard(card, client.data.user)
+      let newPlayCard: Play = {
+        card: play.card,
+        user: play.user
+      }
+      this.server.to(card.slug).emit('cardplay', [newPlayCard, user]); // broadcast messages playcard
+      let newPli: Pli = {
+        slug: card.slug,
+        nbRound: card.nbRound,
+        nbPli: card.nbPli
+      }
+      if (await this.gameService.checkEndPli(newPli)) {
+        let [winner, bonus] = await this.gameService.newPli(newPli)
+        this.server.to(card.slug).emit('newPli', [winner, bonus]); // broadcast messages newPli
+      }
     });
   }
 
   async handleAction(slug: string, callback: Function): Promise<{}> {
     try {
       if (await this.redisService.exists(`room:${slug}`)) {
-        return callback();
+        return await callback();
       } else {
-        throw new HttpException("La room n'existe pas", 404);
+        throw new Error("La room n'existe pas");
       }
     } catch (e) {
       return {
@@ -141,15 +156,3 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
     }
   }
 }
-
-
-
-// ===> CHAQUE CARTE JOUER
-// Get card + user
-// Check if user has the card
-// append card + user dans room:slug:nbManche:pli
-// emit carte joué
-
-// si room:slug:nbManche:pli.length == room.users.length
-//   whoWinTheTrick(room:slug:nbManche:pli)
-// <====
