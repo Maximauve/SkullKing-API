@@ -163,29 +163,11 @@ export class GameService {
   }
 
   cardInDeck(card: Card, deck: Card[]): boolean {
-    return !!deck.find((elem: Card) => {
-      if (elem.type.slug === card.type.slug) {
-        if (elem.value && card.value) {
-          return elem.value == card.value;
-        } else {
-          return true;
-        }
-      }
-    });
+    return !!deck.find((elem: Card) => elem.id == card.id);
   }
 
   removeCardOnDeck(card: Card, deck: Card[]): Card[] {
-    return deck.filter((elem: Card) => {
-      if (elem.type.slug === card.type.slug) {
-        if (elem.value && card.value) {
-          return elem.value != card.value;
-        } else {
-          return false;
-        }
-      } else {
-        return true;
-      }
-    });
+    return deck.filter((elem: Card) => elem.id != card.id);
   }
 
   async userWithoutCards(user: User): Promise<UserInRoom> {
