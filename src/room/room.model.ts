@@ -32,20 +32,15 @@ export interface Play {
   user: User
 }
 
-export interface CardPlayed {
-  card: Card
+export interface PlayCard {
+  card: Card;
+}
+
+export interface CardPlayed extends PlayCard {
   userId: string
 }
 
-export interface PlayCard extends Play {
-  slug: string
-  nbRound: number
-  nbPli: number
-  card: Card
-}
-
 export interface Pli {
-  slug: string
   nbRound: number
   nbPli: number
 }
@@ -65,7 +60,6 @@ export interface RoundModel {
 }
 
 export interface Bet {
-  slug: string
   wins: number
 }
 

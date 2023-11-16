@@ -1,6 +1,6 @@
 import {Injectable} from '@nestjs/common';
 import {RedisService} from "../../redis/service/redis.service";
-import {Play, Pli, RoomModel, Round, RoundModel, User, UserInRoom, UserWithHost} from "../room.model";
+import {Play, RoomModel, RoundModel, User, UserInRoom, UserWithHost} from "../room.model";
 import {PirateGlossaryService} from "../../pirate-glossary/service/pirate-glossary.service";
 import {HttpException} from "@nestjs/common/exceptions";
 
@@ -150,7 +150,6 @@ export class RoomService {
     }
     const roomData = await this.redisService.hgetall(roomKey);
     return {
-      slug: roomData.slug,
       maxPlayers: parseInt(roomData.maxPlayers, 10),
       currentPlayers: parseInt(roomData.currentPlayers, 10),
       password: roomData.password || '',
@@ -161,7 +160,7 @@ export class RoomService {
     } as RoomModel;
   }
 
-  async getRound(slug: string, nbRound: number): Promise<{ users: RoundModel[] }> {
+  async getRound(slug: string, nbRound: number): Promise<{ users: RoundModel[], currentPli: number }> {
     const roomKey = `room:${slug}:${nbRound}`;
     if (await this.redisService.exists(roomKey) == 0) {
       throw new Error(`Le round ${roomKey} n'existe pas`);
@@ -169,11 +168,12 @@ export class RoomService {
     const roundData = await this.redisService.hgetall(roomKey);
     return {
       users: JSON.parse(roundData.users || '[]'),
-    } as { users: RoundModel[] };
+      currentPli: parseInt(roundData.currentPli, 10)
+    } as { users: RoundModel[], currentPli: number };
   }
 
-  async getPli(pli: Pli): Promise<{ plays: Play[] }> {
-    const roomKey = `room:${pli.slug}:${pli.nbRound}:${pli.nbPli}`;
+  async getPli(slug: string, round: number, pli: number): Promise<{ plays: Play[] }> {
+    const roomKey = `room:${slug}:${round}:${pli}`;
     if (await this.redisService.exists(roomKey) == 0) {
       return {
         plays: [],

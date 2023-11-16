@@ -22,5 +22,4 @@ export class RoomDto {
 export class Message {
   timeSent: string;
   text: string;
-  slug: string;
 }

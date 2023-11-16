@@ -12,8 +12,9 @@ import {HttpException} from "@nestjs/common/exceptions";
 import {RoomService} from "./service/room.service";
 import {Message} from "./dto/room.dto";
 import { jwtDecode } from "jwt-decode";
-import {Bet, CardPlayed, Play, PlayCard, Pli, Round} from "./room.model";
+import {Bet, CardPlayed} from "./room.model";
 import {GameService} from "../game/service/game.service";
+import {Card} from "../script/Card";
 
 @WebSocketGateway({ cors : '*', namespace: 'room'})
 export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -33,8 +34,9 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
       userId: tokenData.id,
       point: 0,
       hasToPlay: false,
-      cards: []
+      cards: [],
     };
+    socket.data.slug = socket.handshake.query.slug as string
     console.log(`New connecting... socket id:`, socketId);
   }
 
@@ -44,105 +46,100 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
   }
 
   @SubscribeMessage('leaveRoom')
-  async leaveRoom(@ConnectedSocket() client: Socket, @MessageBody() slug: string) {
-    this.server.to(slug).emit('members', await this.roomService.usersWithoutCardsInRoom(slug));
+  async leaveRoom(@ConnectedSocket() client: Socket) {
+    this.server.to(client.data.slug).emit('members', await this.roomService.usersWithoutCardsInRoom(client.data.slug));
   }
 
   @SubscribeMessage('joinRoom')
-  async joinRoom(@ConnectedSocket() client: Socket, @MessageBody() slug: string): Promise<{}> {
-    return this.handleAction(slug, async () => {
-      await this.roomService.addUserToRoom(slug, client.data.user)
-      client.join(slug);
-      this.server.to(slug).emit('members', await this.roomService.usersWithoutCardsInRoom(slug));
-      return {gameIsStarted: await this.roomService.gameIsStarted(slug)};
+  async joinRoom(@ConnectedSocket() client: Socket): Promise<{}> {
+    return this.handleAction(client.data.slug, async () => {
+      await this.roomService.addUserToRoom(client.data.slug, client.data.user)
+      client.join(client.data.slug);
+      this.server.to(client.data.slug).emit('members', await this.roomService.usersWithoutCardsInRoom(client.data.slug));
+      return {gameIsStarted: await this.roomService.gameIsStarted(client.data.slug)};
     });
   }
 
   @SubscribeMessage('chat')
   chat(@ConnectedSocket() client: Socket, @MessageBody() message: Message): { message : string } {
     // console.log("API chat message -> ", message);
-    this.server.to(message.slug).emit('chat', message, client.data.user); // broadcast messages
+    this.server.to(client.data.slug).emit('chat', message, client.data.user); // broadcast messages
     return {message: "Message bien envoyé"};
   }
 
   @SubscribeMessage('startGame')
-  async startGame(@ConnectedSocket() client: Socket, @MessageBody() slug: string): Promise<{}> {
-    return this.handleAction(slug, async () => {
-      let users = await this.gameService.startGame(slug, client.data.user)
+  async startGame(@ConnectedSocket() client: Socket): Promise<{}> {
+    return this.handleAction(client.data.slug, async () => {
+      let users = await this.gameService.startGame(client.data.slug, client.data.user)
       for (const user of users) {
         this.server.to(user.socketId).emit('cards', user.cards);
       }
-      this.server.to(slug).emit('gameStarted', true); // broadcast messages gameStarted
-      return {gameIsStarted: await this.roomService.gameIsStarted(slug)};
+      this.server.to(client.data.slug).emit('gameStarted', true); // broadcast messages gameStarted
+      return {gameIsStarted: await this.roomService.gameIsStarted(client.data.slug)};
     });
   }
 
   @SubscribeMessage('newRound')
-  async newRound(@ConnectedSocket() client: Socket, @MessageBody() slug: string): Promise<{}> {
-    return this.handleAction(slug, async () => {
-      let users = await this.gameService.newRound(slug)
+  async newRound(@ConnectedSocket() client: Socket): Promise<{}> {
+    return this.handleAction(client.data.slug, async () => {
+      let users = await this.gameService.newRound(client.data.slug)
       for (const user of users) {
         this.server.to(user.socketId).emit('cards', user.cards);
       }
-      this.server.to(slug).emit('newRound', true); // broadcast messages newRound
+      this.server.to(client.data.slug).emit('newRound', true); // broadcast messages newRound
       return {message: "Nouvelle manche bien lancée"};
     });
   }
 
   @SubscribeMessage('bet')
   async bet(@ConnectedSocket() client: Socket, @MessageBody() bet: Bet): Promise<{}> {
-    return this.handleAction(bet.slug, async () => {
-      let [oldBet , user, endRound] = await this.gameService.bet(bet, client.data.user)
-      this.server.to(bet.slug).emit('bet', [user, oldBet]); // broadcast messages bet
+    return this.handleAction(client.data.slug, async () => {
+      let [oldBet , user, endRound] = await this.gameService.bet(bet, client.data.user, client.data.slug)
+      this.server.to(client.data.slug).emit('bet', [user, oldBet]); // broadcast messages bet
       if (endRound) {
-        await this.gameService.endRound(bet.slug);
-        this.server.to(bet.slug).emit('endRound', bet.slug); // broadcast messages endRound
-        this.server.to(bet.slug).emit('member', await this.roomService.usersWithoutCardsInRoom(bet.slug)); // broadcast messages endRound
+        await this.gameService.endRound(client.data.slug);
+        this.server.to(client.data.slug).emit('endRound', client.data.slug); // broadcast messages endRound
+        this.server.to(client.data.slug).emit('member', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
       }
     });
   }
 
   @SubscribeMessage('endRound')
-  async endRound(@ConnectedSocket() client: Socket, @MessageBody() slug : string): Promise<{}> {
-    return this.handleAction(slug, async () => {
-      await this.gameService.endRound(slug);
-      this.server.to(slug).emit('endRound', slug); // broadcast messages endRound
-      this.server.to(slug).emit('member', await this.roomService.usersWithoutCardsInRoom(slug)); // broadcast messages endRound
+  async endRound(@ConnectedSocket() client: Socket): Promise<{}> {
+    return this.handleAction(client.data.slug, async () => {
+      await this.gameService.endRound(client.data.slug);
+      this.server.to(client.data.slug).emit('endRound', client.data.slug); // broadcast messages endRound
+      this.server.to(client.data.slug).emit('member', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
       return {message: "Fin de manche bien lancée"};
     });
   }
 
   @SubscribeMessage('newPli')
-  async newPli(@ConnectedSocket() client: Socket, @MessageBody() pli : Pli): Promise<{}> {
-    return this.handleAction(pli.slug, async () => {
-        let [winner, bonus] = await this.gameService.newPli(pli)
-        this.server.to(pli.slug).emit('newPli', [winner, bonus]); // broadcast messages newPli
+  async newPli(@ConnectedSocket() client: Socket): Promise<{}> {
+    return this.handleAction(client.data.slug, async () => {
+        let [winner, bonus] = await this.gameService.newPli(client.data.slug)
+        this.server.to(client.data.slug).emit('newPli', [winner, bonus]); // broadcast messages newPli
         return {message: "Nouveau pli bien terminé"};
     });
   }
 
   @SubscribeMessage('play')
-  async play(@ConnectedSocket() client: Socket, @MessageBody() playcard : PlayCard): Promise<{}> {
-    return this.handleAction(playcard.slug, async (card: PlayCard) => {
-      let [play, user] = await this.gameService.playCard(card, client.data.user)
+  async play(@ConnectedSocket() client: Socket, card: Card): Promise<{}> {
+    return this.handleAction(client.data.slug, async () => {
+      let [play, user, currentRound, currentPli] = await this.gameService.playCard(card, client.data.user, client.data.slug)
       let newPlayCard: CardPlayed = {
-        card: play.card,
-        userId: play.user.userId
+        card: play,
+        userId: user.userId
       }
-      this.server.to(card.slug).emit('cardplay', newPlayCard); // broadcast messages playcard
-      let newPli: Pli = {
-        slug: card.slug,
-        nbRound: card.nbRound,
-        nbPli: card.nbPli
-      }
-      if (await this.gameService.checkEndPli(newPli) && await this.gameService.checkEndRound(newPli.slug, newPli.nbRound)) {
-        await this.gameService.endRound(newPli.slug);
-        this.server.to(newPli.slug).emit('endRound', newPli.slug); // broadcast messages endRound
-        this.server.to(newPli.slug).emit('member', await this.roomService.usersWithoutCardsInRoom(newPli.slug)); // broadcast messages endRound
+      this.server.to(client.data.slug).emit('cardplay', newPlayCard); // broadcast messages playcard
+      if (await this.gameService.checkEndPli(client.data.slug) && await this.gameService.checkEndRound(client.data.slug)) {
+        await this.gameService.endRound(client.data.slug);
+        this.server.to(client.data.slug).emit('endRound', client.data.slug); // broadcast messages endRound
+        this.server.to(client.data.slug).emit('member', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
         return {message: "Fin de manche bien lancée"};
-      } else if (await this.gameService.checkEndPli(newPli)) {
-        let [winner, bonus] = await this.gameService.newPli(newPli)
-        this.server.to(card.slug).emit('newPli', [winner, bonus]); // broadcast messages newPli
+      } else if (await this.gameService.checkEndPli(client.data.slug)) {
+        let [winner, bonus] = await this.gameService.newPli(client.data.slug);
+        this.server.to(client.data.slug).emit('newPli', [winner, bonus]); // broadcast messages newPli
       }
     });
   }
