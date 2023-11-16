@@ -206,9 +206,7 @@ export class GameService {
     let users: User[] = room.users;
     let lastUser: User = users.pop();
     users.unshift(lastUser);
-    console.log('[moveUsersIndexInRoom] users bf : ', users);
     users.forEach((user: User, index: number) => user.hasToPlay = index === 0);
-    console.log('[moveUsersIndexInRoom] users af : ', users);
     await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(users)]);
   }
 
@@ -221,6 +219,12 @@ export class GameService {
       delete user.hasToPlay
     });
     return users;
+  }
+
+  async getCurrentPliAndRound(slug: string): Promise<[number, number]> {
+    let room = await this.roomService.getRoom(slug);
+    let round = await this.roomService.getRound(slug, room.currentRound);
+    return [round.currentPli, room.currentRound];
   }
 }
 
