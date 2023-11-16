@@ -75,6 +75,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
         this.server.to(user.socketId).emit('cards', user.cards);
       }
       this.server.to(client.data.slug).emit('gameStarted', true); // broadcast messages gameStarted
+      this.server.to(client.data.slug).emit('members', await this.roomService.usersWithoutCardsInRoom(client.data.slug));
       return {gameIsStarted: await this.roomService.gameIsStarted(client.data.slug)};
     });
   }
@@ -85,13 +86,6 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
       let [user, everyoneHaveBet, round] = await this.gameService.bet(bet, client.data.user, client.data.slug)
       this.server.to(client.data.slug).emit('bet', [user, bet]); // broadcast messages bet
       if (everyoneHaveBet) {
-        if (round !== 1) {
-          let [users, newRound] = await this.gameService.newRound(client.data.slug)
-          round = newRound;
-          for (const user of users) {
-            this.server.to(user.socketId).emit('cards', user.cards);
-          }
-        }
         this.server.to(client.data.slug).emit('newRound', round); // broadcast messages newRound
         this.server.to(client.data.slug).emit('members', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
       }
@@ -130,10 +124,16 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
       console.log("API Carte joué -> ", play);
       if (await this.gameService.checkEndPli(client.data.slug)) {
         let [winner, bonus] = await this.gameService.newPli(client.data.slug);
-        this.server.to(client.data.slug).emit('newPli', [winner, bonus]); // broadcast messages newPli
+        this.server.to(client.data.slug).emit('newPli', [winner, bonus]);// broadcast messages newPli
+        await this.gameService.moveUsersIndexInRoom(client.data.slug);
+
         if (await this.gameService.checkEndRound(client.data.slug)) {
           await this.gameService.endRound(client.data.slug, round);
-          this.server.to(client.data.slug).emit('endRound', round + 1); // broadcast messages endRound
+          let [users, newRound] = await this.gameService.newRound(client.data.slug)
+          this.server.to(client.data.slug).emit('endRound', newRound); // broadcast messages endRound
+          for (const user of users) {
+            this.server.to(user.socketId).emit('cards', user.cards);
+          }
           this.server.to(client.data.slug).emit('members', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
           return {message: "Fin de manche bien lancée"};
         }

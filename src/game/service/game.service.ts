@@ -37,11 +37,12 @@ export class GameService {
     const room = await this.roomService.getRoom(slug);
     const fullCards: Card[] = await this.flushCards();
     for (const [index, user] of room.users.entries()) {
+      user.hasToPlay = index === 0;
       user.cards = fullCards.slice((room.currentRound + 1) * index, (room.currentRound + 1) * (index + 1));
     }
     await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(room.users), 'currentRound', (room.currentRound + 1).toString()]);
     await this.redisService.hset(`room:${slug}:${room.currentRound + 1}`, ['currentPli', '1']);
-    return [room.users, room.currentRound];
+    return [room.users, room.currentRound +1];
   }
 
   async bet(bet: number, user: User, slug: string): Promise<[User, boolean, number]> {
@@ -212,6 +213,14 @@ export class GameService {
 
   async getDeck(slug: string, user: User): Promise<Card[]> {
     return (await this.roomService.getRoom(slug)).users.find((elem: User) => elem.userId == user.userId).cards;
+  }
+
+  async moveUsersIndexInRoom(slug: string): Promise<void> {
+    let room = await this.roomService.getRoom(slug);
+    let users: User[] = room.users;
+    let lastUser: User = users.pop();
+    users.unshift(lastUser);
+    await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(users)]);
   }
 }
 
