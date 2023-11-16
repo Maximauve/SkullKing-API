@@ -127,7 +127,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
         let [winner, bonus] = await this.gameService.newPli(client.data.slug);
         this.server.to(client.data.slug).emit('newPli', [winner, bonus]);// broadcast messages newPli
         await this.gameService.moveUsersIndexInRoom(client.data.slug);
-
+        this.server.to(client.data.slug).emit('members', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
         if (await this.gameService.checkEndRound(client.data.slug)) {
           await this.gameService.endRound(client.data.slug, round);
           let [users, newRound] = await this.gameService.newRound(client.data.slug)
