@@ -125,15 +125,15 @@ export class GameService {
     return [winner, bonus];
   }
 
-  async playCard(card: Card, user: User, slug: string): Promise<[Card, UserInRoom, number, number]> {
+  async playCard(card: Card, user: User, slug: string): Promise<[Card, UserInRoom]> {
     let room: RoomModel = await this.roomService.getRoom(slug);
     let round = await this.roomService.getRound(slug, room.currentRound);
     let users: User[] = room.users;
     let userIndex: number = users.findIndex((elem: User) => elem.userId == user.userId);
     if (userIndex == -1) throw new Error("Vous n'êtes pas dans la room");
     if (!users[userIndex].hasToPlay) throw new Error("Ce n'est pas à vous de jouer");
-    let pli = await this.redisService.hgetall(`room:${slug}:${room.currentRound}:${round.currentPli}`)
-    let plays = JSON.parse(pli.plays);
+    let pli = await this.roomService.getPli(slug, room.currentRound, round.currentPli);
+    let plays: Play[] = pli.plays
     if (card.id != room.users.find((elem: User) => elem.userId == user.userId)?.cards.find((elem: Card) => elem.id == card.id).id) {
       throw new Error("Vous n'avez pas cette carte");
     }
@@ -151,7 +151,7 @@ export class GameService {
     }
     await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(users)]);
     let newUser: UserInRoom = await this.userWithoutCards(user);
-    return [card, newUser, room.currentRound, round.currentPli];
+    return [card, newUser];
   }
 
   async userWithoutCards(user: User): Promise<UserInRoom> {

@@ -126,7 +126,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
   @SubscribeMessage('play')
   async play(@ConnectedSocket() client: Socket, card: Card): Promise<{}> {
     return this.handleAction(client.data.slug, async () => {
-      let [play, user, currentRound, currentPli] = await this.gameService.playCard(card, client.data.user, client.data.slug)
+      let [play, user] = await this.gameService.playCard(card, client.data.user, client.data.slug)
       let newPlayCard: CardPlayed = {
         card: play,
         userId: user.userId
