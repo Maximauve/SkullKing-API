@@ -99,7 +99,9 @@ export class GameService {
     const [winner, bonus] = await this.whoWinTheTrick(pliData.plays);
     delete winner.user.cards;
     await this.redisService.hset(`room:${slug}:${room.currentRound}:${round.currentPli}`, ['winner', JSON.stringify(winner.user), 'bonus', bonus.toString()]);
-    await this.redisService.hset(`room:${slug}:${room.currentRound}`, ['currentPli', (round.currentPli + 1).toString()]);
+    if (round.currentPli != room.currentRound) {
+      await this.redisService.hset(`room:${slug}:${room.currentRound}`, ['currentPli', (round.currentPli + 1).toString()]);
+    }
     return [winner, bonus];
   }
 
