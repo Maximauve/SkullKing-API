@@ -55,6 +55,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
     return this.handleAction(client.data.slug, async () => {
       await this.roomService.addUserToRoom(client.data.slug, client.data.user)
       client.join(client.data.slug);
+      this.server.to(client.data.user.socketId).emit('cards', await this.gameService.getDeck(client.data.slug, client.data.user));
       this.server.to(client.data.slug).emit('members', await this.roomService.usersWithoutCardsInRoom(client.data.slug));
       return {gameIsStarted: await this.roomService.gameIsStarted(client.data.slug)};
     });
