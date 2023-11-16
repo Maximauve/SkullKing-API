@@ -134,7 +134,7 @@ export class GameService {
     if (!users[userIndex].hasToPlay) throw new Error("Ce n'est pas à vous de jouer");
     let pli = await this.roomService.getPli(slug, room.currentRound, round.currentPli);
     let plays: Play[] = pli.plays
-    if (this.cardInDeck(card, users[userIndex].cards)) {
+    if (!this.cardInDeck(card, users[userIndex].cards)) {
       throw new Error("Vous n'avez pas cette carte");
     }
     let play: Play = {
@@ -157,8 +157,6 @@ export class GameService {
   }
 
   cardInDeck(card: Card, deck: Card[]): boolean {
-    console.log('[cardInDeck] card ', card);
-    console.log('[cardInDeck] deck ', deck);
     return !!deck.find((elem: Card) => {
       if (elem.type.slug === card.type.slug) {
         if (elem.value && card.value) {
