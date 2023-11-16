@@ -44,7 +44,7 @@ export class GameService {
     return [room.users, room.currentRound];
   }
 
-  async bet(bet: number, user: User, slug: string): Promise<[number, User, boolean]> {
+  async bet(bet: number, user: User, slug: string): Promise<[User, boolean, number]> {
     let room: RoomModel = await this.roomService.getRoom(slug);
     let round = await this.roomService.getRound(slug, room.currentRound);
     if (round.users.find((elem: RoundModel) => elem.userId == user.userId)) throw new Error("Vous avez déjà parié");
@@ -54,9 +54,9 @@ export class GameService {
     await this.redisService.hset(`room:${slug}:${room.currentRound}`, ['users', JSON.stringify(round.users)]);
     delete user.cards;
     if (round.users.length == room.users.length) {
-      return [bet, user, true]
+      return [user, true, room.currentRound];
     }
-    return [bet, user, false]
+    return [user, false, room.currentRound]
   }
 
   async endRound(slug: string, nbRound: number = null): Promise<void> {
