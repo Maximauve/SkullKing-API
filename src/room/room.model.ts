@@ -59,7 +59,3 @@ export interface RoundModel {
   total: number
 }
 
-export interface Bet {
-  wins: number
-}
-

@@ -1,7 +1,7 @@
 import {Injectable} from "@nestjs/common";
 import FullCards from "../../script/cards";
 import {Card} from "../../script/Card";
-import {Bet, Play, Pli, RoomModel, Round, RoundModel, User, UserInRoom} from "../../room/room.model";
+import {Play, RoomModel, RoundModel, User, UserInRoom} from "../../room/room.model";
 import {RedisService} from "../../redis/service/redis.service";
 import {RoomService} from "../../room/service/room.service";
 
@@ -43,13 +43,13 @@ export class GameService {
     return room.users;
   }
 
-  async bet(bet: Bet, user: User, slug: string): Promise<[Bet, User, boolean]> {
+  async bet(bet: number, user: User, slug: string): Promise<[number, User, boolean]> {
     let room: RoomModel = await this.roomService.getRoom(slug);
     let round = await this.roomService.getRound(slug, room.currentRound);
     if (round.users.find((elem: RoundModel) => elem.userId == user.userId)) throw new Error("Vous avez déjà parié");
-    if (bet.wins > room.currentRound || bet.wins < 0) throw new Error("Vous ne pouvez pas parier plus que le nombre de manche");
+    if (bet > room.currentRound || bet < 0) throw new Error("Vous ne pouvez pas parier plus que le nombre de manche");
     let total: number = room.users.find((elem: User) => elem.userId == user.userId)?.points;
-    round.users.push({userId: user.userId, wins: bet.wins, nbWins: null, points: null, bonus: null, total: total});
+    round.users.push({userId: user.userId, wins: bet, nbWins: null, points: null, bonus: null, total: total});
     await this.redisService.hset(`room:${slug}:${room.currentRound}`, ['users', JSON.stringify(round.users)]);
     if (round.users.length == room.users.length) {
       return [bet, user, true]

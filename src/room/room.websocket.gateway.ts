@@ -92,14 +92,17 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
   }
 
   @SubscribeMessage('bet')
-  async bet(@ConnectedSocket() client: Socket, @MessageBody() bet: Bet): Promise<{}> {
+  async bet(@ConnectedSocket() client: Socket, @MessageBody() bet: number): Promise<{}> {
     return this.handleAction(client.data.slug, async () => {
       let [oldBet , user, endRound] = await this.gameService.bet(bet, client.data.user, client.data.slug)
       this.server.to(client.data.slug).emit('bet', [user, oldBet]); // broadcast messages bet
       if (endRound) {
-        await this.gameService.endRound(client.data.slug);
-        this.server.to(client.data.slug).emit('endRound', client.data.slug); // broadcast messages endRound
-        this.server.to(client.data.slug).emit('member', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
+        let users = await this.gameService.newRound(client.data.slug)
+        for (const user of users) {
+          this.server.to(user.socketId).emit('cards', user.cards);
+        }
+        this.server.to(client.data.slug).emit('newRound', true); // broadcast messages newRound
+        this.server.to(client.data.slug).emit('members', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
       }
     });
   }
@@ -109,7 +112,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
     return this.handleAction(client.data.slug, async () => {
       await this.gameService.endRound(client.data.slug);
       this.server.to(client.data.slug).emit('endRound', client.data.slug); // broadcast messages endRound
-      this.server.to(client.data.slug).emit('member', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
+      this.server.to(client.data.slug).emit('members', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
       return {message: "Fin de manche bien lancée"};
     });
   }
@@ -140,8 +143,8 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
 
         if (await this.gameService.checkEndRound(client.data.slug)) {
           await this.gameService.endRound(client.data.slug, round);
-          this.server.to(client.data.slug).emit('endRound', client.data.slug); // broadcast messages endRound
-          this.server.to(client.data.slug).emit('member', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
+          this.server.to(client.data.slug).emit('endRound', ); // broadcast messages endRound
+          this.server.to(client.data.slug).emit('members', await this.roomService.usersWithoutCardsInRoom(client.data.slug)); // broadcast messages endRound
           return {message: "Fin de manche bien lancée"};
         }
       }
