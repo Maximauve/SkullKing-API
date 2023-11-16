@@ -8,7 +8,6 @@ import {
 } from '@nestjs/websockets';
 import {Socket} from 'socket.io';
 import {RedisService} from "../redis/service/redis.service";
-import {HttpException} from "@nestjs/common/exceptions";
 import {RoomService} from "./service/room.service";
 import {Message} from "./dto/room.dto";
 import {jwtDecode} from "jwt-decode";
@@ -33,7 +32,7 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
       socketId: socketId,
       username: tokenData.username,
       userId: tokenData.id,
-      point: 0,
+      points: 0,
       hasToPlay: false,
       cards: [],
     };
