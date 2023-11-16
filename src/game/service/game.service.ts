@@ -97,6 +97,7 @@ export class GameService {
     const pliData = await this.roomService.getPli(slug, room.currentRound, round.currentPli);
     if (room.users.length !== pliData.plays.length) throw new Error("Tous les joueurs n'ont pas joué");
     const [winner, bonus] = await this.whoWinTheTrick(pliData.plays);
+    delete winner.user.cards;
     await this.redisService.hset(`room:${slug}:${room.currentRound}:${round.currentPli}`, ['winner', JSON.stringify(winner.user), 'bonus', bonus.toString()]);
     await this.redisService.hset(`room:${slug}:${room.currentRound}`, ['currentPli', (round.currentPli + 1).toString()]);
     return [winner, bonus];
