@@ -12,7 +12,7 @@ import {HttpException} from "@nestjs/common/exceptions";
 import {RoomService} from "./service/room.service";
 import {Message} from "./dto/room.dto";
 import { jwtDecode } from "jwt-decode";
-import {Bet, Play, PlayCard, Pli, Round} from "./room.model";
+import {Bet, CardPlayed, Play, PlayCard, Pli, Round} from "./room.model";
 import {GameService} from "../game/service/game.service";
 
 @WebSocketGateway({ cors : '*', namespace: 'room'})
@@ -125,11 +125,11 @@ export class RoomWebsocketGateway implements OnGatewayConnection, OnGatewayDisco
   async play(@ConnectedSocket() client: Socket, @MessageBody() playcard : PlayCard): Promise<{}> {
     return this.handleAction(playcard.slug, async (card: PlayCard) => {
       let [play, user] = await this.gameService.playCard(card, client.data.user)
-      let newPlayCard: Play = {
+      let newPlayCard: CardPlayed = {
         card: play.card,
-        user: play.user
+        userId: play.user.userId
       }
-      this.server.to(card.slug).emit('cardplay', [newPlayCard, user]); // broadcast messages playcard
+      this.server.to(card.slug).emit('cardplay', newPlayCard); // broadcast messages playcard
       let newPli: Pli = {
         slug: card.slug,
         nbRound: card.nbRound,

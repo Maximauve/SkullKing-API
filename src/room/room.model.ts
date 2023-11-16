@@ -32,6 +32,11 @@ export interface Play {
   user: User
 }
 
+export interface CardPlayed {
+  card: Card
+  userId: string
+}
+
 export interface PlayCard extends Play {
   slug: string
   nbRound: number

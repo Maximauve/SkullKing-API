@@ -41,7 +41,6 @@ export class GameService {
     await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(room.users), 'currentRound', (room.currentRound + 1).toString()]);
     return room.users;
   }
-  // hasToPlayed : boolean
 
   async bet(bet: Bet, user: User): Promise<[Bet, User, boolean]> {
     let room: RoomModel = await this.roomService.getRoom(bet.slug);
