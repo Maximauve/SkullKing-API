@@ -173,6 +173,7 @@ export class RoomService {
       throw new Error(`Le round ${roomKey} n'existe pas`);
     }
     const roundData = await this.redisService.hgetall(roomKey);
+    console.log(`currentPli for ${roomKey} : `, roundData);
     return {
       users: JSON.parse(roundData.users || '[]'),
       currentPli: parseInt(roundData.currentPli, 10)
