@@ -138,6 +138,9 @@ export class GameService {
     let userIndex: number = users.findIndex((elem: User) => elem.userId == user.userId);
     if (userIndex == -1) throw new Error("Vous n'êtes pas dans la room");
     if (!users[userIndex].hasToPlay) throw new Error("Ce n'est pas à vous de jouer");
+    console.log('[playCard] room.users : ', room.users);
+    console.log('[playCard] round.users : ', round.users);
+    if (room.users.length !== round.users.length) throw new Error("Tous les joueurs n'ont pas parié");
     let pli = await this.roomService.getPli(slug, room.currentRound, round.currentPli);
     let plays: Play[] = pli.plays
     if (!this.cardInDeck(card, users[userIndex].cards)) {
@@ -202,6 +205,9 @@ export class GameService {
     let users: User[] = room.users;
     let lastUser: User = users.pop();
     users.unshift(lastUser);
+    console.log('[moveUsersIndexInRoom] users bf : ', users);
+    users.forEach((user: User, index: number) => user.hasToPlay = index === 0);
+    console.log('[moveUsersIndexInRoom] users af : ', users);
     await this.redisService.hset(`room:${slug}`, ['users', JSON.stringify(users)]);
   }
 }

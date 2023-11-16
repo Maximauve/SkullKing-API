@@ -72,6 +72,7 @@ const loopUtilities: LoopUtility[] = [
 loopUtilities.forEach((utility) => {
   for (let i = 1; i <= 14; i++) {
     utility.deck.push({
+      id: `${utility.color}-${i}`,
       type: utility.type,
       value: i,
       imgPath: `/images/cards/${utility.color}/${i}.png`
@@ -82,6 +83,7 @@ loopUtilities.forEach((utility) => {
 const EscapeCards: Card[] = [];
 for (let i = 1; i <= 5; i++) {
   EscapeCards.push({
+    id: `escape-${i}`,
     type: EscapeType,
     imgPath: '/images/cards/escape.png'
   });
@@ -90,6 +92,7 @@ for (let i = 1; i <= 5; i++) {
 const MermaidCards: Card[] = [];
 for (let i = 1; i <= 2; i++) {
   MermaidCards.push({
+    id: `mermaid-${i}`,
     type: MermaidType,
     imgPath: '/images/cards/mermaid.png'
   });
@@ -98,12 +101,14 @@ for (let i = 1; i <= 2; i++) {
 const PirateCards: Card[] = [];
 for (let i = 1; i <= 5; i++) {
   PirateCards.push({
+    id: `pirate-${i}`,
     type: PirateType,
     imgPath: `/images/cards/pirate/${i}.png`
   });
 }
 
 const SkullKing: Card = {
+  id: 'skull-king',
   type: SkullKingType,
   imgPath: '/images/cards/skullKing.png'
 };
