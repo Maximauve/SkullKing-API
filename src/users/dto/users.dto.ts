@@ -11,4 +11,7 @@ export class CreatedUserDto {
     @IsNotEmpty({ message: "Le mot de passe ne peut pas être vide" })
     @MinLength(6, { message: "Le mot de passe doit contenir au moins 6 caractères" })
     password: string;
+
+    @IsNotEmpty({ message: "Le photo de profil ne peut pas être vide" })
+    imgPath: string;
 }
